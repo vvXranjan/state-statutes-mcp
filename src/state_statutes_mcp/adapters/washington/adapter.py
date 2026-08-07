@@ -34,6 +34,7 @@ class WashingtonAdapter(BaseStateAdapter):
     """
 
     BASE_URL = "https://app.leg.wa.gov/RCW/default.aspx"
+    DEFAULT_TIMEOUT_SECONDS = 30
 
     @property
     def state_code(self) -> str:
@@ -125,7 +126,10 @@ class WashingtonAdapter(BaseStateAdapter):
             # TODO:
             # Replace urllib with the shared HTTP client once the
             # generic networking layer is introduced.
-            with urllib.request.urlopen(self.BASE_URL, DEFAULT_TIMEOUT_SECONDS = 30) as response:  # noqa: S310
+            with urllib.request.urlopen(  # noqa: S310
+                self.BASE_URL,
+                timeout=self.DEFAULT_TIMEOUT_SECONDS,
+            ) as response:
                 html = response.read().decode("utf-8", errors="replace")
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             raise AdapterUnavailableError(
@@ -164,3 +168,83 @@ class WashingtonAdapter(BaseStateAdapter):
             )
 
         return titles
+
+    def list_chapters(self, title_ref: TitleRef) -> Sequence[TocNode]:
+        """Enumerate every chapter under ``title_ref`` from that title's
+        official RCW page.
+
+        A title's page (``default.aspx?cite={title}``, i.e. the same
+        URL :meth:`build_url` produces for a :class:`TitleRef`) is a
+        static, server-rendered HTML page containing a "Chapters" table:
+        one row per chapter, each row holding a link to that chapter
+        (``default.aspx?cite={title}.{chapter}``) and the chapter's
+        display name (e.g. "Apprenticeship."). This method fetches that
+        page with a single plain HTTP GET and parses just that table —
+        same style as :meth:`list_titles`, no browser automation and no
+        separate HTTP client or parser class.
+
+        Args:
+            title_ref: The parent title to enumerate chapters under.
+
+        Returns:
+            A sequence of :class:`TocNode`, one per chapter, in the
+            order they appear on the page. Each node's ``ref`` is a
+            :class:`ChapterRef` whose ``identifier`` is the chapter's
+            own local number (the part after the title and dot, e.g.
+            ``"60"`` for chapter 49.60) and whose ``title`` is
+            ``title_ref``, matching :meth:`build_url`'s expectation
+            that a :class:`ChapterRef`'s citation is composed from
+            ``title.identifier`` and ``identifier``.
+
+        Raises:
+            AdapterUnavailableError: If the title's page cannot be
+                fetched (network failure, non-2xx HTTP response), or if
+                it was fetched but no chapter rows could be parsed from
+                it — the latter most likely indicating either that
+                ``title_ref`` no longer resolves to a real title page or
+                that the site's HTML structure has changed since this
+                parser was written.
+        """
+        url = self.build_url(title_ref)
+        try:
+            with urllib.request.urlopen(  # noqa: S310
+                url,
+                timeout=self.DEFAULT_TIMEOUT_SECONDS,
+            ) as response:
+                html = response.read().decode("utf-8", errors="replace")
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            raise AdapterUnavailableError(
+                f"Could not reach the RCW chapter listing at {url!r}: {exc}"
+            ) from exc
+
+        # Matches one "Chapters" row at a time: a link to
+        # default.aspx?cite={title}.{chapter} (case-insensitive "cite",
+        # to tolerate either casing the site emits) scoped to this
+        # specific title's identifier, capturing only the chapter-local
+        # suffix after "{title}.", followed by that chapter's
+        # plain-text display name in the next table cell.
+        row_pattern = re.compile(
+            r'href="default\.aspx\?cite=' + re.escape(title_ref.identifier) + r'\.([^"]+)"'
+            r'[^>]*>[^<]*</a>'
+            r'\s*(?:</t[dh]>\s*<t[dh][^>]*>)\s*([^<]+?)\s*</t[dh]>',
+            re.IGNORECASE,
+        )
+
+        chapters = tuple(
+            TocNode(
+                level=HierarchyLevel.CHAPTER,
+                identifier=identifier.strip(),
+                name=" ".join(name.split()),
+                ref=ChapterRef(title=title_ref, identifier=identifier.strip()),
+            )
+            for identifier, name in row_pattern.findall(html)
+        )
+
+        if not chapters:
+            raise AdapterUnavailableError(
+                f"Fetched {url!r} but found no chapter rows in it; either "
+                f"title {title_ref.identifier!r} no longer resolves or the "
+                "site's HTML structure has changed."
+            )
+
+        return chapters
