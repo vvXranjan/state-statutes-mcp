@@ -122,7 +122,10 @@ class WashingtonAdapter(BaseStateAdapter):
                 structure has changed since this parser was written.
         """
         try:
-            with urllib.request.urlopen(self.BASE_URL, timeout=30) as response:  # noqa: S310
+            # TODO:
+            # Replace urllib with the shared HTTP client once the
+            # generic networking layer is introduced.
+            with urllib.request.urlopen(self.BASE_URL, DEFAULT_TIMEOUT_SECONDS = 30) as response:  # noqa: S310
                 html = response.read().decode("utf-8", errors="replace")
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             raise AdapterUnavailableError(
@@ -134,6 +137,10 @@ class WashingtonAdapter(BaseStateAdapter):
         # tolerate either casing the site emits) whose link text starts
         # with "Title", followed by that title's plain-text display
         # name in the next table cell.
+
+        # TODO:
+        # Replace regex parsing with an HTML parser (BeautifulSoup/lxml)
+        # once the generic parsing layer is introduced.
         row_pattern = re.compile(
             r'href="default\.aspx\?Cite=([^"]+)"[^>]*>\s*Title\s+[^<]*</a>'
             r'\s*(?:</t[dh]>\s*<t[dh][^>]*>)\s*([^<]+?)\s*</t[dh]>',
