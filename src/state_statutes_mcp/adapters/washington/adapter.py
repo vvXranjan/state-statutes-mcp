@@ -1,25 +1,3 @@
-"""WashingtonAdapter: the Washington-specific concrete state adapter.
-
-Scope of this milestone, deliberately narrow: only the two identity
-properties (``state_code``, ``state_name``) are implemented here. The
-five abstract discovery/retrieval methods declared by
-``BaseStateAdapter`` (``build_url``, ``list_titles``, ``list_chapters``,
-``list_sections``, ``normalize``) are intentionally left unimplemented
-in this milestone, so ``WashingtonAdapter`` remains abstract and cannot
-yet be instantiated — that's expected, and will be resolved as those
-methods are implemented in later milestones against the Revised Code of
-Washington (RCW) at ``app.leg.wa.gov/RCW``.
-"""
-
-from __future__ import annotations
-
-from state_statutes_mcp.adapters.base import BaseStateAdapter
-from state_statutes_mcp.core.exceptions import UnsupportedRefError
-from state_statutes_mcp.models.refs import ChapterRef, SectionRef, TitleRef
-
-_BASE_URL = "https://app.leg.wa.gov/RCW/default.aspx"
-
-
 class WashingtonAdapter(BaseStateAdapter):
     """Concrete state adapter for Washington's Revised Code of
     Washington (RCW).
@@ -27,6 +5,8 @@ class WashingtonAdapter(BaseStateAdapter):
     Only identity and ``build_url`` are implemented at this milestone;
     see the module docstring for what's deliberately still missing.
     """
+
+    BASE_URL = "https://app.leg.wa.gov/RCW/default.aspx"
 
     @property
     def state_code(self) -> str:
@@ -55,12 +35,11 @@ class WashingtonAdapter(BaseStateAdapter):
           directly as the ``cite`` value rather than being composed
           from its parent chapter and title.
 
-        Unlike some states, Washington has no unaddressable level:
-        title, chapter, and section pages all exist as real, directly
-        fetchable resources on the official site, so this method never
-        raises for a legitimate ``TitleRef``/``ChapterRef``/
-        ``SectionRef``. It only raises for a ref of some other,
-        unsupported type.
+        Unlike some states, Washington has no unaddressable level: title,
+        chapter, and section pages all exist as real, directly fetchable
+        resources on the official site, so this method never raises for a
+        legitimate ``TitleRef``/``ChapterRef``/``SectionRef``. It only
+        raises for a ref of some other, unsupported type.
 
         Args:
             ref: The title, chapter, or section to address.
@@ -84,4 +63,4 @@ class WashingtonAdapter(BaseStateAdapter):
                 f"WashingtonAdapter.build_url does not support refs of type "
                 f"{type(ref).__name__!r}."
             )
-        return f"{_BASE_URL}?cite={cite}"
+        return f"{self.BASE_URL}?cite={cite}"
