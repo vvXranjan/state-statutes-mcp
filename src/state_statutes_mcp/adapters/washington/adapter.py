@@ -18,9 +18,17 @@ import urllib.request
 from typing import Sequence
 
 from state_statutes_mcp.adapters.base import BaseStateAdapter
-from state_statutes_mcp.core.exceptions import AdapterUnavailableError, UnsupportedRefError
+from state_statutes_mcp.core.exceptions import (
+    AdapterUnavailableError,
+    NormalizationError,
+    RefMismatchError,
+    UnsupportedRefError,
+)
+from state_statutes_mcp.models.citation import Citation
+from state_statutes_mcp.models.documents import ParsedDocument
 from state_statutes_mcp.models.hierarchy import HierarchyLevel, TocNode
 from state_statutes_mcp.models.refs import ChapterRef, SectionRef, TitleRef
+from state_statutes_mcp.models.statute_section import StatuteSection
 
 
 class WashingtonAdapter(BaseStateAdapter):
@@ -362,3 +370,72 @@ class WashingtonAdapter(BaseStateAdapter):
             )
 
         return sections
+
+    def normalize(self, parsed: ParsedDocument, ref: SectionRef) -> StatuteSection:
+        """Map ``parsed`` into a fully populated ``StatuteSection`` for
+        Washington.
+
+        Cross-checks ``parsed.raw_citation`` against ``ref`` before
+        constructing anything: Washington's canonical dotted citation
+        is ``ref.identifier`` (e.g. ``"49.60.010"``, per
+        :meth:`build_url`'s own documented convention), while
+        ``parsed.raw_citation`` is "the citation exactly as it appeared
+        on the retrieved page" and so may carry a ``"RCW "`` prefix or
+        similar surrounding text. Rather than requiring exact string
+        equality (which would reject a well-formed
+        ``"RCW 49.60.010"``), this checks that the dotted citation
+        appears verbatim within ``raw_citation`` — the same
+        verbatim-substring relationship :meth:`list_sections` already
+        relies on between a section's dotted citation and the RCW
+        site's own link text.
+
+        ``status`` is always left at its default (``UNKNOWN``): neither
+        ``ParsedDocument`` nor anything observed on the RCW site in
+        this milestone's other methods defines a structural
+        repealed/amended/renumbered signal, and the contract explicitly
+        forbids inferring status from prose.
+
+        Args:
+            parsed: The intermediate document to normalize.
+            ref: The section reference that was originally requested,
+                for cross-checking against what was actually returned.
+
+        Returns:
+            A fully populated ``StatuteSection``.
+
+        Raises:
+            NormalizationError: If ``ref`` is not a Washington ref
+                (``ref.state_code != "WA"``), since this adapter can
+                only normalize documents against its own state.
+            RefMismatchError: If ``ref.identifier`` (the requested
+                dotted RCW citation) does not appear in
+                ``parsed.raw_citation``, indicating ``parsed`` is not
+                the section that was requested.
+        """
+        if ref.state_code != self.state_code:
+            raise NormalizationError(
+                f"WashingtonAdapter.normalize cannot normalize a ref for "
+                f"state {ref.state_code!r}; expected {self.state_code!r}."
+            )
+
+        if ref.identifier not in parsed.raw_citation:
+            raise RefMismatchError(
+                f"Requested section {ref.identifier!r} does not match the "
+                f"citation found in the parsed document: "
+                f"{parsed.raw_citation!r}."
+            )
+
+        citation = Citation(
+            state_code=self.state_code,
+            raw=parsed.raw_citation,
+        )
+
+        return StatuteSection(
+            ref=ref,
+            citation=citation,
+            heading=parsed.heading,
+            text=parsed.text,
+            amendment_notes=parsed.amendment_notes,
+            source_url=parsed.source_url,
+            retrieved_at=parsed.retrieved_at,
+        )
