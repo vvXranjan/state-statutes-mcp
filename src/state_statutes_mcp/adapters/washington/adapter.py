@@ -1,20 +1,29 @@
 """WashingtonAdapter: the Washington-specific concrete state adapter.
 
 Scope of this milestone: the identity properties (``state_code``,
-``state_name``) and four of the five abstract discovery/retrieval
-methods declared by ``BaseStateAdapter`` — ``build_url``,
-``list_titles``, ``list_chapters``, and ``list_sections`` — are
+``state_name``) and all five abstract discovery/retrieval methods
+declared by ``BaseStateAdapter`` — ``build_url``, ``list_titles``,
+``list_chapters``, ``list_sections``, and ``normalize`` — are
 implemented here against the Revised Code of Washington (RCW) at
-``app.leg.wa.gov/RCW``. Only ``normalize`` remains unimplemented, so
-``WashingtonAdapter`` remains abstract and cannot yet be instantiated —
-that's expected, and will be resolved in a later milestone.
+``app.leg.wa.gov/RCW``. ``WashingtonAdapter`` is therefore fully
+instantiable.
+
+On top of the abstract contract, this adapter also defines
+``retrieve_section``: an adapter-owned convenience method that chains
+``build_url`` → an inline fetch → inline parsing into a
+``ParsedDocument`` → ``normalize`` for a single ``SectionRef``. This is
+not part of ``BaseStateAdapter``'s contract (see ``retrieve_section``'s
+own docstring for why), so it doesn't change what any other adapter is
+required to implement.
 """
 
 from __future__ import annotations
 
+import html
 import re
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from typing import Sequence
 
 from state_statutes_mcp.adapters.base import BaseStateAdapter
@@ -35,9 +44,13 @@ class WashingtonAdapter(BaseStateAdapter):
     """Concrete state adapter for Washington's Revised Code of
     Washington (RCW).
 
-    Identity, ``build_url``, ``list_titles``, ``list_chapters``, and
-    ``list_sections`` are implemented at this milestone; see the
-    module docstring for what's deliberately still missing.
+    Identity and all five of ``BaseStateAdapter``'s abstract methods
+    (``build_url``, ``list_titles``, ``list_chapters``,
+    ``list_sections``, ``normalize``) are implemented. This adapter
+    also defines ``retrieve_section``, an adapter-owned convenience
+    method (not part of the abstract contract) that chains those
+    pieces together for end-to-end single-section retrieval; see its
+    own docstring for scope.
     """
 
     BASE_URL = "https://app.leg.wa.gov/RCW/default.aspx"
@@ -439,3 +452,237 @@ class WashingtonAdapter(BaseStateAdapter):
             source_url=parsed.source_url,
             retrieved_at=parsed.retrieved_at,
         )
+
+    # ------------------------------------------------------------
+    # End-to-end section retrieval (not part of BaseStateAdapter's
+    # abstract contract - see method docstring below)
+    # ------------------------------------------------------------
+
+    # Every pattern below is anchored to structure confirmed against
+    # the real, live-fetched HTML of a representative section page
+    # (default.aspx?cite=49.60.010) -- not inferred from any rendered
+    # or Markdown-converted view of the page. See retrieve_section's
+    # docstring for the confirmed snippets each pattern corresponds
+    # to.
+
+    # The citation lives in a bare <h1> (no attributes observed).
+    _CITATION_H1 = re.compile(r"<h1>(.*?)</h1>", re.IGNORECASE | re.DOTALL)
+
+    # The catchline lives in a bare <h2> (no attributes observed).
+    # Matching only a bare <h2> -- not <h2 ...> -- is what excludes the
+    # page's footer heading, which does carry an attribute
+    # (class="text-warning"); see _FOOTER_H2 below.
+    _CATCHLINE_H2 = re.compile(r"<h2>(.*?)</h2>", re.IGNORECASE | re.DOTALL)
+
+    # The site-wide footer heading, confirmed to always carry
+    # class="text-warning" -- this both bounds how far parsing reads
+    # and, by requiring the attribute, cannot collide with the bare
+    # catchline <h2> above.
+    _FOOTER_H2 = re.compile(
+        r'<h2[^>]*\bclass\s*=\s*["\']text-warning["\'][^>]*>',
+        re.IGNORECASE,
+    )
+
+    # Each statute-body paragraph is its own
+    # <div style="text-indent:0.5in;">...</div>. Confirmed not to be a
+    # <p> tag, which is exactly what an earlier version assumed
+    # incorrectly.
+    _BODY_PARAGRAPH_DIV = re.compile(
+        r'<div\s+style="text-indent:\s*0\.5in;?"\s*>(.*?)</div>',
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    # The bracketed legislative-history line sits in its own
+    # <div style="margin-top:15pt;margin-bottom:0pt;">...</div>,
+    # immediately after the body paragraphs.
+    _HISTORY_DIV = re.compile(
+        r'<div\s+style="margin-top:\s*15pt;\s*margin-bottom:\s*0pt;?"\s*>(.*?)</div>',
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    # The Notes heading is a plain <h3>Notes:</h3>, distinct from both
+    # the citation <h1> and the catchline <h2>.
+    _NOTES_H3 = re.compile(r"<h3>\s*Notes:\s*</h3>", re.IGNORECASE)
+
+    # Notes content style wasn't confirmed precisely ("several divs"),
+    # so this deliberately matches *any* <div>, unlike the two
+    # style-specific patterns above -- used only within the
+    # already-bounded region between the Notes heading and the footer.
+    _GENERIC_DIV = re.compile(r"<div[^>]*>(.*?)</div>", re.IGNORECASE | re.DOTALL)
+
+    _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
+    _TAG = re.compile(r"<[^>]+>")
+
+    @classmethod
+    def _clean(cls, fragment: str) -> str:
+        """Strip HTML comments and tags from ``fragment``, decode HTML
+        entities, and collapse whitespace to single spaces.
+
+        The confirmed citation/catchline markup wraps its text in CMS
+        field-boundary comments (e.g. ``<!-- field: Citations -->``),
+        so comment removal has to happen before tag-stripping and
+        whitespace-collapsing, or those comments would otherwise
+        survive as literal text.
+        """
+        text = cls._COMMENT.sub(" ", fragment)
+        text = cls._TAG.sub(" ", text)
+        text = html.unescape(text)
+        return " ".join(text.split())
+
+    def retrieve_section(self, ref: SectionRef) -> StatuteSection:
+        """Retrieve and normalize one Washington RCW section, end to
+        end: :meth:`build_url` -> fetch -> parse into
+        :class:`ParsedDocument` -> :meth:`normalize` ->
+        :class:`StatuteSection`.
+
+        This method is deliberately **not** part of
+        ``BaseStateAdapter``'s abstract contract, for the same reason
+        given in the module docstring: a shared version would need an
+        injected fetcher/parser this milestone doesn't have. What's
+        here is Washington-specific glue chaining already-implemented
+        pieces together, doing its own inline fetch and regex-based
+        parse exactly the way :meth:`list_titles`, :meth:`list_chapters`,
+        and :meth:`list_sections` already do.
+
+        **Page structure this parsing relies on**, confirmed directly
+        against the live page's raw HTML for a representative section
+        (``default.aspx?cite=49.60.010``), including a byte-for-byte
+        saved copy of the fetched page -- not inferred from any
+        rendered or Markdown-converted view:
+
+        * Citation: a bare ``<h1>`` whose text (once CMS field-boundary
+          comments are stripped) is the citation, e.g.
+          ``<h1><!-- field: Citations -->RCW  49.60.010<!-- field: -->
+          </h1>``.
+        * Catchline: a bare ``<h2>`` immediately after, e.g.
+          ``<h2><!-- field: CaptionsTitles -->Purpose of chapter.
+          <!-- field: --></h2>``.
+        * Body: each paragraph is its own
+          ``<div style="text-indent:0.5in;">``, nested inside
+          ``<div id='contentWrapper' class='section-page'>`` -- not
+          ``<p>`` tags.
+        * Legislative history: one
+          ``<div style="margin-top:15pt;margin-bottom:0pt;">`` holding
+          the bracketed session-law citation list, immediately after
+          the body paragraphs.
+        * Notes: a plain ``<h3>Notes:</h3>`` (itself wrapped in a
+          ``<div style="margin-top:0.25in;margin-bottom:0.25in;">``)
+          followed by further ``<div>`` elements of free-form notes
+          text.
+        * Footer/stop boundary: ``<h2 class="text-warning">Legislative
+          questions or comments</h2>``, present as site chrome on every
+          RCW page.
+
+        The legislative-history block and the Notes content (if
+        present) are combined into one ``amendment_notes`` string,
+        consistent with :class:`ParsedDocument`'s contract that this
+        field is preserved as raw, unparsed text rather than
+        structurally interpreted.
+
+        This is regex-based text extraction anchored to exactly the
+        confirmed containers above, not a general-purpose HTML parser
+        -- consistent with every other method in this class. Verified
+        against the real, saved HTML of ``?cite=49.60.010``: correctly
+        extracts the citation, catchline, full body text (beginning
+        "This chapter shall be known as..."), and the legislative
+        history/Notes content. One known limitation: the body/history
+        extraction assumes those ``<div>`` elements don't themselves
+        contain a *nested* ``<div>`` before their closing tag; if a
+        future section's body embedded one (e.g. a table), the
+        non-greedy match would stop at that inner ``</div>`` and
+        truncate. The confirmed section tested against does not
+        exhibit this, but it has not been checked across every RCW
+        section.
+
+        Args:
+            ref: The section to retrieve. Must be a Washington ref
+                (``ref.state_code == "WA"``); enforced by
+                :meth:`normalize`, not this method directly.
+
+        Returns:
+            The fully normalized :class:`StatuteSection` for ``ref``.
+
+        Raises:
+            AdapterUnavailableError: If the section's page cannot be
+                fetched (network failure, non-2xx HTTP response).
+            NormalizationError: If no citation ``<h1>`` could be found,
+                or if no body paragraph ``<div>`` could be found --
+                either indicates ``ref`` doesn't resolve to a real
+                section page or the site's HTML structure has changed.
+                Also raised by :meth:`normalize` if ``ref`` is not a
+                Washington ref.
+            RefMismatchError: Raised by :meth:`normalize` if the parsed
+                citation does not match ``ref``.
+        """
+        url = self.build_url(ref)
+        try:
+            with urllib.request.urlopen(  # noqa: S310
+                url,
+                timeout=self.DEFAULT_TIMEOUT_SECONDS,
+            ) as response:
+                page_html = response.read().decode("utf-8", errors="replace")
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            raise AdapterUnavailableError(
+                f"Could not reach the RCW section page at {url!r}: {exc}"
+            ) from exc
+
+        citation_match = self._CITATION_H1.search(page_html)
+        if citation_match is None:
+            raise NormalizationError(
+                f"Fetched {url!r} but found no <h1> citation heading in it; "
+                f"either section {ref.identifier!r} no longer resolves to a "
+                "real section page or the site's HTML structure has changed."
+            )
+        raw_citation = self._clean(citation_match.group(1))
+
+        footer_match = self._FOOTER_H2.search(page_html, citation_match.end())
+        content_html = page_html[
+            citation_match.end() : footer_match.start() if footer_match else len(page_html)
+        ]
+
+        catchline_match = self._CATCHLINE_H2.search(content_html)
+        heading = self._clean(catchline_match.group(1)) if catchline_match is not None else None
+
+        body_matches = list(self._BODY_PARAGRAPH_DIV.finditer(content_html))
+        if not body_matches:
+            raise NormalizationError(
+                f"Fetched {url!r} and found citation {raw_citation!r}, but no "
+                f"statute body paragraph could be parsed for section "
+                f"{ref.identifier!r}; the site's HTML structure has likely "
+                "changed since this parser was written."
+            )
+        text = "\n\n".join(self._clean(match.group(1)) for match in body_matches)
+        if not text.strip():
+            raise NormalizationError(
+                f"Fetched {url!r} and found citation {raw_citation!r}, but the "
+                f"statute body for section {ref.identifier!r} was empty after "
+                "stripping markup; the site's HTML structure has likely "
+                "changed since this parser was written."
+            )
+
+        history_match = self._HISTORY_DIV.search(content_html)
+        history_text = self._clean(history_match.group(1)) if history_match is not None else None
+
+        notes_match = self._NOTES_H3.search(content_html)
+        notes_text = None
+        if notes_match is not None:
+            notes_region = content_html[notes_match.end() :]
+            notes_paragraphs = [
+                self._clean(match.group(1)) for match in self._GENERIC_DIV.finditer(notes_region)
+            ]
+            notes_paragraphs = [p for p in notes_paragraphs if p]
+            notes_text = "\n\n".join(notes_paragraphs) if notes_paragraphs else None
+
+        amendment_parts = [part for part in (history_text, notes_text) if part]
+        amendment_notes = "\n\n".join(amendment_parts) if amendment_parts else None
+
+        parsed = ParsedDocument(
+            raw_citation=raw_citation,
+            heading=heading,
+            text=text,
+            amendment_notes=amendment_notes,
+            source_url=url,
+            retrieved_at=datetime.now(timezone.utc),
+        )
+
+        return self.normalize(parsed, ref)
