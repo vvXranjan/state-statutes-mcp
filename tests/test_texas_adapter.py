@@ -23,7 +23,7 @@ from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.core.exceptions import NormalizationError, RefMismatchError
 from state_statutes_mcp.models.refs import ChapterRef, SectionRef, TitleRef
 
-HTML_PATH = "texas_current_pe19.html"
+HTML_PATH = "tests/fixtures/texas_current_pe19.html"
 EXPECTED_CHAPTER_URL = (
     "https://tcss.legis.texas.gov/resources/PE/htm/PE.19.htm"
 )
