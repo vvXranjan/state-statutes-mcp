@@ -73,13 +73,12 @@ unlike New York or Michigan:
 
 from __future__ import annotations
 
-import html
 import re
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from typing import Sequence
 
+from state_statutes_mcp.adapters._fetch import fetch_url
+from state_statutes_mcp.adapters._htmltext import strip_tags
 from state_statutes_mcp.adapters.base import BaseStateAdapter
 from state_statutes_mcp.core.exceptions import (
     AdapterUnavailableError,
@@ -572,9 +571,6 @@ class IllinoisAdapter(BaseStateAdapter):
     # Shared fetch/clean helper
     # ------------------------------------------------------------
 
-    _TAG = re.compile(r"<[^>]+>")
-    _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
-
     def _fetch_text(self, url: str) -> str:
         """Fetch ``url`` and return its content as tag-stripped,
         entity-decoded, whitespace-normalized plain text.
@@ -587,6 +583,10 @@ class IllinoisAdapter(BaseStateAdapter):
         means paragraph breaks are NOT preserved; see module docstring
         for why that trade-off is accepted here rather than fixed.
 
+        Delegates to the shared
+        :func:`~state_statutes_mcp.adapters._htmltext.strip_tags`
+        helper with ``preserve_block_breaks=False``.
+
         Args:
             url: The URL to fetch.
 
@@ -594,22 +594,10 @@ class IllinoisAdapter(BaseStateAdapter):
             AdapterUnavailableError: If ``url`` cannot be fetched
                 (network failure, non-2xx HTTP response).
         """
-        try:
-            # TODO:
-            # Replace urllib with the shared HTTP client once the
-            # generic networking layer is introduced (matches the
-            # TODO already left in WashingtonAdapter and TexasAdapter).
-            with urllib.request.urlopen(  # noqa: S310
+        return strip_tags(
+            fetch_url(
                 url,
+                what="Illinois source",
                 timeout=self.DEFAULT_TIMEOUT_SECONDS,
-            ) as response:
-                raw_html = response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise AdapterUnavailableError(
-                f"Could not reach the Illinois source at {url!r}: {exc}"
-            ) from exc
-
-        without_comments = self._COMMENT.sub(" ", raw_html)
-        without_tags = self._TAG.sub(" ", without_comments)
-        decoded = html.unescape(without_tags)
-        return " ".join(decoded.split())
+            )
+        )

@@ -14,10 +14,9 @@ or:
 
 from __future__ import annotations
 
-import io
 import unittest
-from contextlib import contextmanager
-from unittest import mock
+
+from _mock_network import mock_urlopen_serving as _mock_urlopen_serving
 
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.core.exceptions import NormalizationError, RefMismatchError
@@ -30,28 +29,6 @@ EXPECTED_CHAPTER_URL = (
 
 with open(HTML_PATH, encoding="utf-8") as f:
     _PE19_HTML = f.read()
-
-
-class _FakeResponse(io.BytesIO):
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc_info):
-        return False
-
-
-@contextmanager
-def _mock_urlopen_serving(url_to_html: dict[str, str]):
-    def fake_urlopen(url, timeout=None):
-        if url not in url_to_html:
-            raise AssertionError(f"Unexpected URL fetched in test: {url!r}")
-        return _FakeResponse(url_to_html[url].encode("utf-8"))
-
-    with mock.patch(
-        "state_statutes_mcp.adapters.texas.adapter.urllib.request.urlopen",
-        side_effect=fake_urlopen,
-    ):
-        yield
 
 
 def _pe19_ref(identifier: str) -> SectionRef:

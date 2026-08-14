@@ -26,11 +26,13 @@ separately labeled:
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 import urllib.error
+from pathlib import Path
 
 import pytest
+
+from _mock_network import mock_urlopen as _mock_urlopen
+from _mock_network import mock_urlopen_error
 
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.core.exceptions import (
@@ -76,20 +78,6 @@ SYNTHETIC_MOCK_NO_LEGACY_CITATION = """
 commits first degree murder.</div>
 <div>(Source: P.A. 89-203, eff. 7-21-95.)</div>
 """
-
-
-def _mock_urlopen(html_text: str):
-    """Build a patch target for ``urllib.request.urlopen`` that returns
-    ``html_text`` as raw bytes, so the adapter's real ``_fetch_text``
-    (tag-strip, entity-decode, whitespace-normalize) actually runs
-    against it -- rather than mocking ``_fetch_text`` itself, which
-    would bypass the exact cleaning logic these tests need to exercise.
-    """
-    response = MagicMock()
-    response.read.return_value = html_text.encode("utf-8")
-    response.__enter__.return_value = response
-    response.__exit__.return_value = False
-    return patch("urllib.request.urlopen", return_value=response)
 
 
 def _make_ref(chapter: str, act: str, section: str) -> SectionRef:
@@ -191,9 +179,8 @@ class TestRetrieveSectionSyntheticMock:
         adapter = IllinoisAdapter()
         ref = _make_ref("720", "5", "9-2")
 
-        with patch(
-            "urllib.request.urlopen",
-            side_effect=urllib.error.URLError("simulated network failure"),
+        with mock_urlopen_error(
+            urllib.error.URLError("simulated network failure")
         ):
             with pytest.raises(AdapterUnavailableError):
                 adapter.retrieve_section(ref)

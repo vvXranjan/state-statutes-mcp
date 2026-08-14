@@ -82,13 +82,12 @@ Confirmed vs. unconfirmed, honestly stated:
 
 from __future__ import annotations
 
-import html
 import re
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from typing import Sequence
 
+from state_statutes_mcp.adapters._fetch import fetch_url
+from state_statutes_mcp.adapters._htmltext import strip_tags
 from state_statutes_mcp.adapters.base import BaseStateAdapter
 from state_statutes_mcp.core.exceptions import (
     AdapterUnavailableError,
@@ -653,18 +652,11 @@ class TexasAdapter(BaseStateAdapter):
     # ------------------------------------------------------------
     # Shared fetch/clean helpers
     # ------------------------------------------------------------
-
-    _TAG = re.compile(r"<[^>]+>")
-    _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
-    # Inserts a newline before common block-level tags so that
-    # tag-stripping doesn't run separate lines/cells together into one
-    # unbroken string -- needed because, unlike WashingtonAdapter,
-    # this adapter parses page *text* rather than matching specific
-    # tag/class combinations whose markup was confirmed (see module
-    # docstring on what's confirmed vs. not).
-    _BLOCK_TAG_OPEN = re.compile(
-        r"<(?:p|div|tr|li|br|h[1-6])\b[^>]*>", re.IGNORECASE
-    )
+    #
+    # Fetching and tag-cleaning are delegated to the shared helpers
+    # (_fetch.fetch_url, _htmltext.strip_tags); everything else here is
+    # Texas-specific text shaping (paragraph collapse) that must not be
+    # shared.
 
     @staticmethod
     def _collapse_paragraphs(text: str) -> str:
@@ -705,20 +697,11 @@ class TexasAdapter(BaseStateAdapter):
             AdapterUnavailableError: If ``url`` cannot be fetched
                 (network failure, non-2xx HTTP response).
         """
-        try:
-            # TODO:
-            # Replace urllib with the shared HTTP client once the
-            # generic networking layer is introduced (matches the
-            # TODO already left in WashingtonAdapter).
-            with urllib.request.urlopen(  # noqa: S310
-                url,
-                timeout=self.DEFAULT_TIMEOUT_SECONDS,
-            ) as response:
-                return response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise AdapterUnavailableError(
-                f"Could not reach the Texas {what} at {url!r}: {exc}"
-            ) from exc
+        return fetch_url(
+            url,
+            what=f"Texas {what}",
+            timeout=self.DEFAULT_TIMEOUT_SECONDS,
+        )
 
     def _clean_fragment(self, raw_html: str) -> str:
         """Tag-strip, entity-decode, and whitespace-normalize a chunk
@@ -728,17 +711,12 @@ class TexasAdapter(BaseStateAdapter):
         Shared by ``_fetch_text`` (on a whole fetched page) and
         ``retrieve_section`` (on a single anchor-bounded section
         fragment already sliced out of a raw page) so both go through
-        identical cleaning logic.
+        identical cleaning logic. Delegates to the shared
+        :func:`~state_statutes_mcp.adapters._htmltext.strip_tags`
+        helper with ``preserve_block_breaks=True`` so paragraph/block
+        boundaries survive.
         """
-        without_comments = self._COMMENT.sub(" ", raw_html)
-        with_newlines = self._BLOCK_TAG_OPEN.sub("\n", without_comments)
-        without_tags = self._TAG.sub(" ", with_newlines)
-        decoded = html.unescape(without_tags)
-        # Collapse runs of horizontal whitespace but keep the newlines
-        # inserted above, so line-anchored patterns (chapter headings)
-        # and paragraph boundaries survive.
-        lines = (" ".join(line.split()) for line in decoded.splitlines())
-        return "\n".join(line for line in lines if line)
+        return strip_tags(raw_html, preserve_block_breaks=True)
 
     def _fetch_text(self, url: str, *, what: str) -> str:
         """Fetch ``url`` and return its content as tag-stripped,

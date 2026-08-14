@@ -19,13 +19,12 @@ required to implement.
 
 from __future__ import annotations
 
-import html
 import re
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from typing import Sequence
 
+from state_statutes_mcp.adapters._fetch import fetch_url
+from state_statutes_mcp.adapters._htmltext import strip_tags
 from state_statutes_mcp.adapters.base import BaseStateAdapter
 from state_statutes_mcp.core.exceptions import (
     AdapterUnavailableError,
@@ -142,19 +141,11 @@ class WashingtonAdapter(BaseStateAdapter):
                 it — the latter most likely indicating the site's HTML
                 structure has changed since this parser was written.
         """
-        try:
-            # TODO:
-            # Replace urllib with the shared HTTP client once the
-            # generic networking layer is introduced.
-            with urllib.request.urlopen(  # noqa: S310
-                self.BASE_URL,
-                timeout=self.DEFAULT_TIMEOUT_SECONDS,
-            ) as response:
-                html = response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise AdapterUnavailableError(
-                f"Could not reach the RCW title listing at {self.BASE_URL!r}: {exc}"
-            ) from exc
+        html = fetch_url(
+            self.BASE_URL,
+            what="RCW title listing",
+            timeout=self.DEFAULT_TIMEOUT_SECONDS,
+        )
 
         # Matches one "RCWs by Title" row at a time: a link to
         # default.aspx?Cite={identifier} (case-insensitive "Cite", to
@@ -226,16 +217,11 @@ class WashingtonAdapter(BaseStateAdapter):
                 parser was written.
         """
         url = self.build_url(title_ref)
-        try:
-            with urllib.request.urlopen(  # noqa: S310
-                url,
-                timeout=self.DEFAULT_TIMEOUT_SECONDS,
-            ) as response:
-                html = response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise AdapterUnavailableError(
-                f"Could not reach the RCW chapter listing at {url!r}: {exc}"
-            ) from exc
+        html = fetch_url(
+            url,
+            what="RCW chapter listing",
+            timeout=self.DEFAULT_TIMEOUT_SECONDS,
+        )
 
         # Matches one "Chapters" row at a time: a link to
         # default.aspx?cite={title}.{chapter} (case-insensitive "cite",
@@ -326,16 +312,11 @@ class WashingtonAdapter(BaseStateAdapter):
                 since this parser was written.
         """
         url = self.build_url(chapter_ref)
-        try:
-            with urllib.request.urlopen(  # noqa: S310
-                url,
-                timeout=self.DEFAULT_TIMEOUT_SECONDS,
-            ) as response:
-                html = response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise AdapterUnavailableError(
-                f"Could not reach the RCW section listing at {url!r}: {exc}"
-            ) from exc
+        html = fetch_url(
+            url,
+            what="RCW section listing",
+            timeout=self.DEFAULT_TIMEOUT_SECONDS,
+        )
 
         # Matches one "Sections" row at a time: a link to
         # default.aspx?cite={title}.{chapter}.{section} (case-insensitive
@@ -510,9 +491,6 @@ class WashingtonAdapter(BaseStateAdapter):
     # already-bounded region between the Notes heading and the footer.
     _GENERIC_DIV = re.compile(r"<div[^>]*>(.*?)</div>", re.IGNORECASE | re.DOTALL)
 
-    _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
-    _TAG = re.compile(r"<[^>]+>")
-
     @classmethod
     def _clean(cls, fragment: str) -> str:
         """Strip HTML comments and tags from ``fragment``, decode HTML
@@ -523,11 +501,13 @@ class WashingtonAdapter(BaseStateAdapter):
         so comment removal has to happen before tag-stripping and
         whitespace-collapsing, or those comments would otherwise
         survive as literal text.
+
+        Implemented via the shared :func:`~state_statutes_mcp.adapters._htmltext.strip_tags`
+        helper with ``preserve_block_breaks=False`` -- Washington cleans
+        small, already-isolated fragments and deliberately does not
+        preserve paragraph breaks.
         """
-        text = cls._COMMENT.sub(" ", fragment)
-        text = cls._TAG.sub(" ", text)
-        text = html.unescape(text)
-        return " ".join(text.split())
+        return strip_tags(fragment, preserve_block_breaks=False)
 
     def retrieve_section(self, ref: SectionRef) -> StatuteSection:
         """Retrieve and normalize one Washington RCW section, end to
@@ -615,16 +595,11 @@ class WashingtonAdapter(BaseStateAdapter):
                 citation does not match ``ref``.
         """
         url = self.build_url(ref)
-        try:
-            with urllib.request.urlopen(  # noqa: S310
-                url,
-                timeout=self.DEFAULT_TIMEOUT_SECONDS,
-            ) as response:
-                page_html = response.read().decode("utf-8", errors="replace")
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise AdapterUnavailableError(
-                f"Could not reach the RCW section page at {url!r}: {exc}"
-            ) from exc
+        page_html = fetch_url(
+            url,
+            what="RCW section page",
+            timeout=self.DEFAULT_TIMEOUT_SECONDS,
+        )
 
         citation_match = self._CITATION_H1.search(page_html)
         if citation_match is None:

@@ -24,6 +24,17 @@ Explicitly EXCLUDED from this milestone, to be introduced later:
   part of the contract yet, and adding them now would mean defining
   real behavior for a class this milestone declares out of scope.
 
+One clarification, so the MCP layer's dependency is explicit: although
+``retrieve_section`` is not part of the abstract contract, the MCP
+``get_section`` tool calls it on whatever adapter the registry returns
+(see :mod:`state_statutes_mcp.server_tools`). Every concrete adapter
+intended to be served through that tool MUST therefore implement
+``retrieve_section(ref: SectionRef) -> StatuteSection`` — an
+adapter-owned convenience method that chains ``build_url`` -> fetch ->
+parse into a :class:`ParsedDocument` -> ``normalize``. This requirement
+comes from the MCP tool layer, not from ``BaseStateAdapter`` itself, so
+it is documented here rather than enforced as abstract.
+
 Because there are no injected collaborators, ``BaseStateAdapter`` defines
 no ``__init__`` of its own in this milestone. Concrete adapters may
 define whatever constructor they need; the base class imposes nothing
@@ -48,6 +59,10 @@ class BaseStateAdapter(ABC):
     two identity properties and the five abstract methods below. It does
     not need to call ``super().__init__()`` with any particular
     arguments, since this milestone's base class takes none.
+
+    Adapters served through the MCP ``get_section`` tool must also
+    implement the adapter-owned ``retrieve_section`` method — see the
+    module docstring for the exact requirement.
     """
 
     # ------------------------------------------------------------
