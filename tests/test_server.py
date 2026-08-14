@@ -63,7 +63,7 @@ class TestServerToolsExposed:
         content = asyncio.run(_call())
 
         states = content["result"]
-        assert [s["state_code"] for s in states] == ["DE", "FL", "IL", "TX", "VA", "WA"]
+        assert [s["state_code"] for s in states] == ["DE", "FL", "IL", "SD", "TX", "VA", "WA"]
 
 
 class TestServerIdentity:

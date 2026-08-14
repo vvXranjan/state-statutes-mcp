@@ -23,6 +23,7 @@ from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
+from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
 from state_statutes_mcp.adapters.washington.adapter import WashingtonAdapter
@@ -137,6 +138,7 @@ def _registry() -> AdapterRegistry:
     registry.register(VirginiaAdapter())
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
+    registry.register(SouthDakotaAdapter())
     return registry
 
 
@@ -148,6 +150,7 @@ class TestListStates:
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "IL", "state_name": "Illinois"},
+            {"state_code": "SD", "state_name": "South Dakota"},
             {"state_code": "TX", "state_name": "Texas"},
             {"state_code": "VA", "state_name": "Virginia"},
             {"state_code": "WA", "state_name": "Washington"},
@@ -326,5 +329,54 @@ class TestGetSectionFlorida:
         )
         assert result["source_url"] == (
             "https://www.flsenate.gov/Laws/Statutes/2025/Chapter775/All"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionSouthDakota:
+    def test_returns_normalized_south_dakota_section(self) -> None:
+        # Synthetic JSON matching the verified South Dakota section-record
+        # shape (embedded Html with a number+catchline line, body
+        # paragraphs, and a trailing "Source:" amendment-history line).
+        served = {
+            "https://sdlegislature.gov/api/Statutes/Statute/22-3-1": json.dumps(
+                {
+                    "StatuteId": 2046938,
+                    "Statute": "22-3-1",
+                    "CatchLine": "Persons capable of committing crimes--Exceptions.",
+                    "Type": "Section",
+                    "Repealed": False,
+                    "parents": [
+                        {"StatuteId": 1, "Type": "Title", "Statute": "22"},
+                        {"StatuteId": 2, "Type": "Chapter", "Statute": "3"},
+                        {"StatuteId": 3, "Type": "Section", "Statute": "1"},
+                    ],
+                    "Html": (
+                        "<html><head><style>span { white-space: pre-wrap; }</style></head><body>"
+                        '<p dir="ltr" class="sSC"><a href="https://sdlegislature.gov/Statutes?Statute=22-3-1"><span>22-3-1</span></a><span>.</span> <span>Persons capable of committing crimes--Exceptions.</span></p>'
+                        "<p dir=\"ltr\" class=\"sNormal\">Any person is capable of committing a crime, except the following.</p>"
+                        '<p dir="ltr" class="sSCL"><span class="sSC">Source:</span><span class="sS"> SDC 1939, \u00a7 13.0201; SL 1968, ch 28, \u00a7\u00a7 1, 2.</span></p>'
+                        "</body></html>"
+                    ),
+                }
+            )
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "SD", "22", "3", "22-3-1")
+
+        assert result["state"] == "SD"
+        assert result["section"] == "22-3-1"
+        assert result["citation"] == "SDCL § 22-3-1"
+        assert (
+            result["heading"]
+            == "Persons capable of committing crimes--Exceptions."
+        )
+        assert "Any person is capable of committing a crime" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == (
+            "Source: SDC 1939, § 13.0201; SL 1968, ch 28, §§ 1, 2."
+        )
+        assert result["source_url"] == (
+            "https://sdlegislature.gov/api/Statutes/Statute/22-3-1"
         )
         assert result["retrieved_at"] is not None
