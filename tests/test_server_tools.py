@@ -14,12 +14,14 @@ from __future__ import annotations
 
 import json
 import urllib.error
+from pathlib import Path
 
 import pytest
 
 from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
 
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
+from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
@@ -134,6 +136,7 @@ def _registry() -> AdapterRegistry:
     registry.register(IllinoisAdapter())
     registry.register(VirginiaAdapter())
     registry.register(DelawareAdapter())
+    registry.register(FloridaAdapter())
     return registry
 
 
@@ -143,6 +146,7 @@ class TestListStates:
 
         assert result == [
             {"state_code": "DE", "state_name": "Delaware"},
+            {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "TX", "state_name": "Texas"},
             {"state_code": "VA", "state_name": "Virginia"},
@@ -291,5 +295,36 @@ class TestGetSectionDelaware:
         )
         assert result["source_url"] == (
             "https://delcode.delaware.gov/title11/c005/index.html"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionFlorida:
+    def test_returns_normalized_florida_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official
+        # Chapter 775 "/All" document captured live on Aug 14, 2026.
+        fixture = (
+            Path(__file__).parent
+            / "fixtures"
+            / "florida_chapter775_all.html"
+        ).read_text(encoding="utf-8")
+        served = {
+            "https://www.flsenate.gov/Laws/Statutes/2025/Chapter775/All": fixture
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "FL", "46", "775", "775.01")
+
+        assert result["state"] == "FL"
+        assert result["section"] == "775.01"
+        assert result["citation"] == "s. 775.01, Fla. Stat."
+        assert result["heading"] == "Common law of England."
+        assert "The common law of England" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == (
+            "s. 1, Nov. 6, 1829; s. 1, Feb. 10, 1832; RS 2369; GS 3194; "
+            "RGS 5024; CGL 7126."
+        )
+        assert result["source_url"] == (
+            "https://www.flsenate.gov/Laws/Statutes/2025/Chapter775/All"
         )
         assert result["retrieved_at"] is not None
