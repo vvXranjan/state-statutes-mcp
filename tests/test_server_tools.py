@@ -17,8 +17,9 @@ import urllib.error
 
 import pytest
 
-from _mock_network import mock_urlopen, mock_urlopen_error
+from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
 
+from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
@@ -94,6 +95,37 @@ SYNTHETIC_VA_SECTION_JSON = {
 }
 
 
+# SYNTHETIC mock pages -- NOT real government fixtures. Matches the verified
+# Delaware structure documented in DelawareAdapter's module docstring: a
+# subchapter-based chapter page linking sc01, and a subchapter page holding
+# section 501 as a <div class="Section"> block.
+SYNTHETIC_DE_CHAPTER_HTML = """
+<html><body>
+  <div class="title-links"><a href="../../title11/c005/sc01/index.html">
+                        Subchapter I. Inchoate Crimes</a></div>
+</body></html>
+"""
+
+SYNTHETIC_DE_SECTION_HTML = """
+<html><body>
+  <div id="CodeBody">
+    <div class="Section">
+      <div class="SectionHead" id="501">
+          \u00a7
+        501. Criminal solicitation in the third degree; class A misdemeanor.</div>
+      <p class="subsection">A person is guilty of criminal solicitation in the third degree when, intending that another person engage in conduct constituting a misdemeanor, the person solicits or otherwise attempts to cause the other person to engage in such conduct.</p>
+      <p class="subsection">Criminal solicitation in the third degree is a class A misdemeanor.</p>11 Del. C. 1953,
+                \u00a7
+               501;
+      <a href="https://legis.delaware.gov/SessionLaws?volume=58&amp;chapter=497">58 Del. Laws, c. 497,
+                \u00a7
+               1</a>;
+      </div><br>
+  </div>
+</body></html>
+"""
+
+
 def _registry() -> AdapterRegistry:
     """Build the same registry the real server would use."""
     registry = AdapterRegistry()
@@ -101,6 +133,7 @@ def _registry() -> AdapterRegistry:
     registry.register(TexasAdapter())
     registry.register(IllinoisAdapter())
     registry.register(VirginiaAdapter())
+    registry.register(DelawareAdapter())
     return registry
 
 
@@ -109,6 +142,7 @@ class TestListStates:
         result = list_states(_registry())
 
         assert result == [
+            {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "TX", "state_name": "Texas"},
             {"state_code": "VA", "state_name": "Virginia"},
@@ -223,5 +257,39 @@ class TestGetSectionVirginia:
         assert result["source_url"] == (
             "https://law.lis.virginia.gov/api/"
             "CoVSectionsGetSectionDetailsJson/18.2-51/"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionDelaware:
+    def test_returns_normalized_delaware_section(self) -> None:
+        served = {
+            "https://delcode.delaware.gov/title11/c005/index.html": (
+                SYNTHETIC_DE_CHAPTER_HTML
+            ),
+            "https://delcode.delaware.gov/title11/c005/sc01/index.html": (
+                SYNTHETIC_DE_SECTION_HTML
+            ),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "DE", "11", "5", "501")
+
+        assert result["state"] == "DE"
+        assert result["section"] == "501"
+        assert result["citation"] == "11 Del. C. § 501"
+        assert (
+            result["heading"]
+            == "Criminal solicitation in the third degree; class A misdemeanor."
+        )
+        assert (
+            "Criminal solicitation in the third degree is a class A misdemeanor."
+            in result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == (
+            "11 Del. C. 1953, § 501; 58 Del. Laws, c. 497, § 1 ;"
+        )
+        assert result["source_url"] == (
+            "https://delcode.delaware.gov/title11/c005/index.html"
         )
         assert result["retrieved_at"] is not None
