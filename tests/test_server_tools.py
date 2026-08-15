@@ -30,6 +30,8 @@ from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
+from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
+from state_statutes_mcp.adapters.rhode_island.adapter import RhodeIslandAdapter
 from state_statutes_mcp.adapters.south_carolina.adapter import SouthCarolinaAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
@@ -155,6 +157,8 @@ def _registry() -> AdapterRegistry:
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
     registry.register(NorthDakotaAdapter())
+    registry.register(OhioAdapter())
+    registry.register(RhodeIslandAdapter())
     registry.register(SouthCarolinaAdapter())
     registry.register(SouthDakotaAdapter())
     registry.register(VermontAdapter())
@@ -177,6 +181,8 @@ class TestListStates:
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "ND", "state_name": "North Dakota"},
+            {"state_code": "OH", "state_name": "Ohio"},
+            {"state_code": "RI", "state_name": "Rhode Island"},
             {"state_code": "SC", "state_name": "South Carolina"},
             {"state_code": "SD", "state_name": "South Dakota"},
             {"state_code": "TX", "state_name": "Texas"},
@@ -681,4 +687,58 @@ class TestGetSectionSouthCarolina:
         assert result["status"] == "unknown"
         assert result["amendment_notes"].startswith("HISTORY: 1962 Code")
         assert result["source_url"] == "https://www.scstatehouse.gov/code/t01c001.php"
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionOhio:
+    def test_returns_normalized_ohio_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official
+        # codes.ohio.gov section page captured via the Wayback Machine
+        # (the live host is unreachable from this environment).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://codes.ohio.gov/ohio-revised-code/section-2901.01": (
+                fixtures / "oh_section_2901.01.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "OH", "29", "2901", "2901.01")
+
+        assert result["state"] == "OH"
+        assert result["section"] == "2901.01"
+        assert result["citation"] == "Ohio Rev. Code § 2901.01"
+        assert result["heading"] == "General provisions definitions."
+        assert "(A) As used in the Revised Code:" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("September 10, 2012")
+        assert result["source_url"] == (
+            "https://codes.ohio.gov/ohio-revised-code/section-2901.01"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionRhodeIsland:
+    def test_returns_normalized_rhode_island_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official
+        # webserver.rilegislature.gov section page captured via the Wayback
+        # Machine (the live host is unreachable from this environment).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "http://webserver.rilegislature.gov/Statutes/TITLE43/43-3/43-3-2.htm": (
+                fixtures / "ri_section_43-3-2.htm"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "RI", "43", "43-3", "43-3-2")
+
+        assert result["state"] == "RI"
+        assert result["section"] == "43-3-2"
+        assert result["citation"] == "R.I. Gen. Laws § 43-3-2"
+        assert result["heading"] == "Application of rules of construction."
+        assert "In the construction of statutes" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("G.L. 1896, ch. 26, § 1;")
+        assert result["source_url"] == (
+            "http://webserver.rilegislature.gov/Statutes/TITLE43/43-3/43-3-2.htm"
+        )
         assert result["retrieved_at"] is not None
