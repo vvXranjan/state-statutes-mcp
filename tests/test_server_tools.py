@@ -24,9 +24,11 @@ from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
+from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
+from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.adapters.vermont.adapter import VermontAdapter
@@ -146,9 +148,11 @@ def _registry() -> AdapterRegistry:
     registry.register(FloridaAdapter())
     registry.register(SouthDakotaAdapter())
     registry.register(ArizonaAdapter())
+    registry.register(KansasAdapter())
     registry.register(MaineAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
+    registry.register(NorthDakotaAdapter())
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
     return registry
@@ -163,9 +167,11 @@ class TestListStates:
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "IL", "state_name": "Illinois"},
+            {"state_code": "KS", "state_name": "Kansas"},
             {"state_code": "ME", "state_name": "Maine"},
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
+            {"state_code": "ND", "state_name": "North Dakota"},
             {"state_code": "SD", "state_name": "South Dakota"},
             {"state_code": "TX", "state_name": "Texas"},
             {"state_code": "VA", "state_name": "Virginia"},
@@ -565,4 +571,56 @@ class TestGetSectionArizona:
         assert result["status"] == "unknown"
         assert result["amendment_notes"] is None
         assert result["source_url"] == "https://www.azleg.gov/ars/28/00101.htm"
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionKansas:
+    def test_returns_normalized_kansas_section(self) -> None:
+        # The real trimmed fixture: a verbatim response of the official
+        # kslegislature.gov JSON API captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.kslegislature.gov/api/v1/statutes/21-5903/": (
+                fixtures / "ks_section_21-5903.json"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "KS", "21", "59", "21-5903")
+
+        assert result["state"] == "KS"
+        assert result["section"] == "21-5903"
+        assert result["citation"] == "Kan. Stat. Ann. § 21-5903"
+        assert result["heading"] == "Perjury."
+        assert "Perjury is intentionally and falsely" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("History: L. 2010, ch. 136")
+        assert result["source_url"] == (
+            "https://www.kslegislature.gov/api/v1/statutes/21-5903/"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionNorthDakota:
+    def test_returns_normalized_north_dakota_section(self) -> None:
+        # The real trimmed fixture: a trimmed copy of the official
+        # ndlegis.gov bulk JSON captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://ndlegis.gov/api/data/century_code.json": (
+                fixtures / "nd_century_code_trimmed.json"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "ND", "1", "01", "1-01-01")
+
+        assert result["state"] == "ND"
+        assert result["section"] == "1-01-01"
+        assert result["citation"] == "N.D.C.C. § 1-01-01"
+        assert result["heading"] == "This act - How referred to"
+        assert "This revision, whenever cited" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == (
+            "https://ndlegis.gov/api/data/century_code.json"
+        )
         assert result["retrieved_at"] is not None
