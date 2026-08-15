@@ -23,10 +23,14 @@ from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
+from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
+from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
+from state_statutes_mcp.adapters.vermont.adapter import VermontAdapter
 from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
 from state_statutes_mcp.adapters.washington.adapter import WashingtonAdapter
+from state_statutes_mcp.adapters.west_virginia.adapter import WestVirginiaAdapter
 from state_statutes_mcp.core.exceptions import AdapterUnavailableError, RefMismatchError
 from state_statutes_mcp.core.registry import AdapterRegistry
 from state_statutes_mcp.server_tools import (
@@ -139,6 +143,10 @@ def _registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(SouthDakotaAdapter())
+    registry.register(MaineAdapter())
+    registry.register(MissouriAdapter())
+    registry.register(VermontAdapter())
+    registry.register(WestVirginiaAdapter())
     return registry
 
 
@@ -150,10 +158,14 @@ class TestListStates:
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "IL", "state_name": "Illinois"},
+            {"state_code": "ME", "state_name": "Maine"},
+            {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "SD", "state_name": "South Dakota"},
             {"state_code": "TX", "state_name": "Texas"},
             {"state_code": "VA", "state_name": "Virginia"},
+            {"state_code": "VT", "state_name": "Vermont"},
             {"state_code": "WA", "state_name": "Washington"},
+            {"state_code": "WV", "state_name": "West Virginia"},
         ]
 
     def test_empty_registry_returns_empty_list(self) -> None:
@@ -379,4 +391,122 @@ class TestGetSectionSouthDakota:
         assert result["source_url"] == (
             "https://sdlegislature.gov/api/Statutes/Statute/22-3-1"
         )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionMaine:
+    def test_returns_normalized_maine_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # legislature.maine.gov statutes pages captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://legislature.maine.gov/statutes/17-A/title17-Ach1sec0.html": (
+                fixtures / "maine_title17a_ch1.html"
+            ).read_text(encoding="utf-8"),
+            "https://legislature.maine.gov/statutes/17-A/title17-Asec2.html": (
+                fixtures / "maine_title17a_sec2.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "ME", "17-A", "1", "2")
+
+        assert result["state"] == "ME"
+        assert result["section"] == "2"
+        assert result["citation"] == "17-A M.R.S. § 2"
+        assert result["heading"] == "Definitions"
+        assert "As used in this code" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("PL 1975, c. 499, §1 (NEW).")
+        assert result["source_url"] == (
+            "https://legislature.maine.gov/statutes/17-A/title17-Asec2.html"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionMissouri:
+    def test_returns_normalized_missouri_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official
+        # revisor.mo.gov section page captured via the Wayback Machine
+        # (the live host rejects automated clients).
+        fixture = (
+            Path(__file__).parent / "fixtures" / "missouri_section536050.html"
+        ).read_text(encoding="utf-8")
+        served = {
+            "https://revisor.mo.gov/main/OneSection.aspx?section=536.050": fixture
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "MO", "XXXVI", "536", "536.050")
+
+        assert result["state"] == "MO"
+        assert result["section"] == "536.050"
+        assert result["citation"] == "RSMo § 536.050"
+        assert result["heading"] == (
+            "Declaratory judgments respecting the validity of rules — fees and "
+            "expenses — standing, intervention by general assembly."
+        )
+        assert "The power of the courts of this state to render declaratory" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("(L. 1945 p. 1504 § 5")
+        assert result["source_url"] == (
+            "https://revisor.mo.gov/main/OneSection.aspx?section=536.050"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionVermont:
+    def test_returns_normalized_vermont_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official
+        # legislature.vermont.gov section page captured via the Wayback
+        # Machine (the live host rejects automated clients).
+        fixture = (
+            Path(__file__).parent / "fixtures" / "vermont_section01344.html"
+        ).read_text(encoding="utf-8")
+        served = {
+            "https://legislature.vermont.gov/statutes/section/21/017/01344": fixture
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "VT", "21", "017", "01344")
+
+        assert result["state"] == "VT"
+        assert result["section"] == "01344"
+        assert result["citation"] == "21 V.S.A. § 1344"
+        assert result["heading"] == "Disqualifications"
+        assert "An individual shall be disqualified for benefits" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("(Amended 1959, No. 236;")
+        assert result["source_url"] == (
+            "https://legislature.vermont.gov/statutes/section/21/017/01344"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionWestVirginia:
+    def test_returns_normalized_west_virginia_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official
+        # code.wvlegislature.gov section page captured via the Wayback
+        # Machine (the live host rejects automated clients).
+        fixture = (
+            Path(__file__).parent / "fixtures" / "west_virginia_section112112.html"
+        ).read_text(encoding="utf-8")
+        served = {
+            "https://code.wvlegislature.gov/11-21-12/": fixture
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "WV", "11", "21", "11-21-12")
+
+        assert result["state"] == "WV"
+        assert result["section"] == "11-21-12"
+        assert result["citation"] == "W. Va. Code § 11-21-12"
+        assert (
+            result["heading"]
+            == "West Virginia adjusted gross income of resident individual."
+        )
+        assert "The West Virginia adjusted gross income of a resident" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == "https://code.wvlegislature.gov/11-21-12/"
         assert result["retrieved_at"] is not None
