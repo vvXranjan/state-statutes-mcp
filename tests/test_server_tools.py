@@ -20,10 +20,12 @@ import pytest
 
 from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
 
+from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
+from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
@@ -143,7 +145,9 @@ def _registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(SouthDakotaAdapter())
+    registry.register(ArizonaAdapter())
     registry.register(MaineAdapter())
+    registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
@@ -155,10 +159,12 @@ class TestListStates:
         result = list_states(_registry())
 
         assert result == [
+            {"state_code": "AZ", "state_name": "Arizona"},
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "ME", "state_name": "Maine"},
+            {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "SD", "state_name": "South Dakota"},
             {"state_code": "TX", "state_name": "Texas"},
@@ -509,4 +515,54 @@ class TestGetSectionWestVirginia:
         assert result["status"] == "unknown"
         assert result["amendment_notes"] is None
         assert result["source_url"] == "https://code.wvlegislature.gov/11-21-12/"
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionMinnesota:
+    def test_returns_normalized_minnesota_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # revisor.mn.gov statutes pages captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.revisor.mn.gov/statutes/cite/3C.12": (
+                fixtures / "mn_section_3C12.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "MN", "LEGISLATURE", "3C", "3C.12")
+
+        assert result["state"] == "MN"
+        assert result["section"] == "3C.12"
+        assert result["citation"] == "Minn. Stat. § 3C.12"
+        assert result["heading"] == "SALE AND DISTRIBUTION OF STATUTES AND LAWS."
+        assert "The revisor shall determine how many copies" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("1984 c 480 s 12")
+        assert result["source_url"] == (
+            "https://www.revisor.mn.gov/statutes/cite/3C.12"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionArizona:
+    def test_returns_normalized_arizona_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # azleg.gov pages captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.azleg.gov/ars/28/00101.htm": (
+                fixtures / "az_section_28-101.html"
+            ).read_text(encoding="latin-1"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "AZ", "28", "1", "28-101")
+
+        assert result["state"] == "AZ"
+        assert result["section"] == "28-101"
+        assert result["citation"] == "A.R.S. § 28-101"
+        assert result["heading"] == "Definitions"
+        assert 'In this title, unless the context' in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == "https://www.azleg.gov/ars/28/00101.htm"
         assert result["retrieved_at"] is not None

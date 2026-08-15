@@ -64,10 +64,12 @@ class TestServerToolsExposed:
 
         states = content["result"]
         assert [s["state_code"] for s in states] == [
+            "AZ",
             "DE",
             "FL",
             "IL",
             "ME",
+            "MN",
             "MO",
             "SD",
             "TX",

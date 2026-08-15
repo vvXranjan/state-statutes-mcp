@@ -18,10 +18,12 @@ from __future__ import annotations
 
 from mcp.server.mcpserver import MCPServer
 
+from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
+from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
@@ -54,7 +56,9 @@ def build_registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(SouthDakotaAdapter())
+    registry.register(ArizonaAdapter())
     registry.register(MaineAdapter())
+    registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
