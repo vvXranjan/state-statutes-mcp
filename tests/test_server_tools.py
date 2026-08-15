@@ -26,9 +26,11 @@ from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
+from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
+from state_statutes_mcp.adapters.south_carolina.adapter import SouthCarolinaAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
 from state_statutes_mcp.adapters.texas.adapter import TexasAdapter
 from state_statutes_mcp.adapters.vermont.adapter import VermontAdapter
@@ -146,13 +148,15 @@ def _registry() -> AdapterRegistry:
     registry.register(VirginiaAdapter())
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
-    registry.register(SouthDakotaAdapter())
     registry.register(ArizonaAdapter())
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())
+    registry.register(MarylandAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
     registry.register(NorthDakotaAdapter())
+    registry.register(SouthCarolinaAdapter())
+    registry.register(SouthDakotaAdapter())
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
     return registry
@@ -168,10 +172,12 @@ class TestListStates:
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "KS", "state_name": "Kansas"},
+            {"state_code": "MD", "state_name": "Maryland"},
             {"state_code": "ME", "state_name": "Maine"},
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "ND", "state_name": "North Dakota"},
+            {"state_code": "SC", "state_name": "South Carolina"},
             {"state_code": "SD", "state_name": "South Dakota"},
             {"state_code": "TX", "state_name": "Texas"},
             {"state_code": "VA", "state_name": "Virginia"},
@@ -623,4 +629,56 @@ class TestGetSectionNorthDakota:
         assert result["source_url"] == (
             "https://ndlegis.gov/api/data/century_code.json"
         )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionMaryland:
+    def test_returns_normalized_maryland_section(self) -> None:
+        # The real trimmed fixture: a verbatim response of the official
+        # mgaleg.maryland.gov section page captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText"
+            "?article=gtr&section=1-101": (
+                fixtures / "md_section_1-101.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "MD", "gtr", "1", "1-101")
+
+        assert result["state"] == "MD"
+        assert result["section"] == "1-101"
+        assert result["citation"] == "Md. Code, Transportation § 1-101"
+        assert result["heading"] is None
+        assert "In this article the following words" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == (
+            "https://mgaleg.maryland.gov/mgawebsite/Laws/StatuteText"
+            "?article=gtr&section=1-101"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionSouthCarolina:
+    def test_returns_normalized_south_carolina_section(self) -> None:
+        # The real trimmed fixture: a verbatim response of the official
+        # scstatehouse.gov chapter page captured live on Aug 15, 2026.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.scstatehouse.gov/code/t01c001.php": (
+                fixtures / "sc_t01c001.php"
+            ).read_text(encoding="latin-1"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "SC", "1", "1", "1-1-10")
+
+        assert result["state"] == "SC"
+        assert result["section"] == "1-1-10"
+        assert result["citation"] == "S.C. Code § 1-1-10"
+        assert result["heading"] == "Jurisdiction and boundaries of the State."
+        assert "The sovereignty and jurisdiction of this State" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("HISTORY: 1962 Code")
+        assert result["source_url"] == "https://www.scstatehouse.gov/code/t01c001.php"
         assert result["retrieved_at"] is not None
