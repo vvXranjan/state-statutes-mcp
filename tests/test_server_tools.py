@@ -23,6 +23,7 @@ from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
+from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
@@ -39,6 +40,7 @@ from state_statutes_mcp.adapters.vermont.adapter import VermontAdapter
 from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
 from state_statutes_mcp.adapters.washington.adapter import WashingtonAdapter
 from state_statutes_mcp.adapters.west_virginia.adapter import WestVirginiaAdapter
+from state_statutes_mcp.adapters.wisconsin.adapter import WisconsinAdapter
 from state_statutes_mcp.core.exceptions import AdapterUnavailableError, RefMismatchError
 from state_statutes_mcp.core.registry import AdapterRegistry
 from state_statutes_mcp.server_tools import (
@@ -151,6 +153,7 @@ def _registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
+    registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())
     registry.register(MarylandAdapter())
@@ -163,6 +166,7 @@ def _registry() -> AdapterRegistry:
     registry.register(SouthDakotaAdapter())
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
+    registry.register(WisconsinAdapter())
     return registry
 
 
@@ -174,6 +178,7 @@ class TestListStates:
             {"state_code": "AZ", "state_name": "Arizona"},
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
+            {"state_code": "ID", "state_name": "Idaho"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "KS", "state_name": "Kansas"},
             {"state_code": "MD", "state_name": "Maryland"},
@@ -189,6 +194,7 @@ class TestListStates:
             {"state_code": "VA", "state_name": "Virginia"},
             {"state_code": "VT", "state_name": "Vermont"},
             {"state_code": "WA", "state_name": "Washington"},
+            {"state_code": "WI", "state_name": "Wisconsin"},
             {"state_code": "WV", "state_name": "West Virginia"},
         ]
 
@@ -740,5 +746,70 @@ class TestGetSectionRhodeIsland:
         assert result["amendment_notes"].startswith("G.L. 1896, ch. 26, § 1;")
         assert result["source_url"] == (
             "http://webserver.rilegislature.gov/Statutes/TITLE43/43-3/43-3-2.htm"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionWisconsin:
+    def test_returns_normalized_wisconsin_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # docs.legis.wisconsin.gov statutes pages captured via the Wayback
+        # Machine (the live host is unreachable from this environment).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://docs.legis.wisconsin.gov/document/statutes/13.90": (
+                fixtures / "wi_section_13.90.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(
+                _registry(), "WI", "Wisconsin Statutes", "13", "13.90"
+            )
+
+        assert result["state"] == "WI"
+        assert result["section"] == "13.90"
+        assert result["citation"] == "Wis. Stat. § 13.90"
+        assert result["heading"] == (
+            "Duties and powers of the joint committee on legislative "
+            "organization."
+        )
+        assert "(1) The joint committee on legislative organization" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("1971 c. 215 ;")
+        assert result["source_url"] == (
+            "https://docs.legis.wisconsin.gov/document/statutes/13.90"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionIdaho:
+    def test_returns_normalized_idaho_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # legislature.idaho.gov statutes pages captured via the Wayback
+        # Machine (the live host is unreachable from this environment).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://legislature.idaho.gov/statutesrules/idstat/"
+            "Title18/T18CH40/SECT18-4001": (
+                fixtures / "id_section_18-4001.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "ID", "18", "40", "18-4001")
+
+        assert result["state"] == "ID"
+        assert result["section"] == "18-4001"
+        assert result["citation"] == "Idaho Code § 18-4001"
+        assert result["heading"] == "Murder defined."
+        assert "Murder is the unlawful killing" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith(
+            "[18-4001, added 1972, ch. 336, sec. 1, p. 928;"
+        )
+        assert result["source_url"] == (
+            "https://legislature.idaho.gov/statutesrules/idstat/"
+            "Title18/T18CH40/SECT18-4001"
         )
         assert result["retrieved_at"] is not None

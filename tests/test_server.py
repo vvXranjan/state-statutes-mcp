@@ -67,6 +67,7 @@ class TestServerToolsExposed:
             "AZ",
             "DE",
             "FL",
+            "ID",
             "IL",
             "KS",
             "MD",
@@ -82,6 +83,7 @@ class TestServerToolsExposed:
             "VA",
             "VT",
             "WA",
+            "WI",
             "WV",
         ]
 
