@@ -40,6 +40,7 @@ from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
+from state_statutes_mcp.adapters.nebraska.adapter import NebraskaAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
 from state_statutes_mcp.adapters.north_carolina.adapter import NorthCarolinaAdapter
@@ -209,6 +210,7 @@ def _registry() -> AdapterRegistry:
     registry.register(MarylandAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
+    registry.register(NebraskaAdapter())
     registry.register(NevadaAdapter())
     registry.register(NewHampshireAdapter())
     registry.register(NorthCarolinaAdapter())
@@ -242,6 +244,7 @@ class TestListStates:
             {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "NC", "state_name": "North Carolina"},
             {"state_code": "ND", "state_name": "North Dakota"},
+            {"state_code": "NE", "state_name": "Nebraska"},
             {"state_code": "NH", "state_name": "New Hampshire"},
             {"state_code": "NV", "state_name": "Nevada"},
             {"state_code": "OH", "state_name": "Ohio"},
@@ -1032,5 +1035,33 @@ class TestGetSectionNorthCarolina:
         assert result["source_url"] == (
             "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/"
             "Chapter_15/GS_15-1.html"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionNebraska:
+    def test_returns_normalized_nebraska_section(self) -> None:
+        # The real fixtures: verbatim slices of the official
+        # nebraskalegislature.gov pages captured via the Wayback Machine
+        # (the live host is unreachable from this environment). UTF-8, so
+        # served through the shared UTF-8 mock.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://nebraskalegislature.gov/laws/statutes.php?statute=77-1801": (
+                fixtures / "ne_section_77-1801.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "NE", "REVISED STATUTES", "77", "77-1801")
+
+        assert result["state"] == "NE"
+        assert result["section"] == "77-1801"
+        assert result["citation"] == "Neb. Rev. Stat. § 77-1801"
+        assert result["heading"] == "Real property taxes; collection by sale; when."
+        assert result["text"].startswith("Except for delinquent taxes on mobile homes")
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("Laws 1903, c. 73, § 193")
+        assert result["source_url"] == (
+            "https://nebraskalegislature.gov/laws/statutes.php?statute=77-1801"
         )
         assert result["retrieved_at"] is not None
