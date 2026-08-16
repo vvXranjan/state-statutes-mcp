@@ -40,6 +40,7 @@ from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
+from state_statutes_mcp.adapters.montana.adapter import MontanaAdapter
 from state_statutes_mcp.adapters.nebraska.adapter import NebraskaAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
@@ -210,6 +211,7 @@ def _registry() -> AdapterRegistry:
     registry.register(MarylandAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
+    registry.register(MontanaAdapter())
     registry.register(NebraskaAdapter())
     registry.register(NevadaAdapter())
     registry.register(NewHampshireAdapter())
@@ -242,6 +244,7 @@ class TestListStates:
             {"state_code": "ME", "state_name": "Maine"},
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
+            {"state_code": "MT", "state_name": "Montana"},
             {"state_code": "NC", "state_name": "North Carolina"},
             {"state_code": "ND", "state_name": "North Dakota"},
             {"state_code": "NE", "state_name": "Nebraska"},
@@ -1063,5 +1066,39 @@ class TestGetSectionNebraska:
         assert result["amendment_notes"].startswith("Laws 1903, c. 73, § 193")
         assert result["source_url"] == (
             "https://nebraskalegislature.gov/laws/statutes.php?statute=77-1801"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionMontana:
+    def test_returns_normalized_montana_section(self) -> None:
+        # The real fixture: a verbatim live capture of the official
+        # mca.legmt.gov section page (fetched Aug 16 2026). UTF-8, so
+        # served through the shared UTF-8 mock.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://mca.legmt.gov/bills/mca/title_0010/chapter_0110/"
+            "part_0010/section_0030/0010-0110-0010-0030.html": (
+                fixtures / "montana_title_1_11_103.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "MT", "1", "11", "1-11-103")
+
+        assert result["state"] == "MT"
+        assert result["section"] == "1-11-103"
+        assert result["citation"] == "Mont. Code Ann. § 1-11-103"
+        assert result["heading"] == (
+            "Effect of Montana Code Annotated -- official version."
+        )
+        assert result["text"].startswith(
+            "(1) The Montana Code Annotated is a reenactment of the Revised "
+            "Codes of Montana, 1947, and the supplements thereto."
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("En. 12-506 by Sec. 6")
+        assert result["source_url"] == (
+            "https://mca.legmt.gov/bills/mca/title_0010/chapter_0110/"
+            "part_0010/section_0030/0010-0110-0010-0030.html"
         )
         assert result["retrieved_at"] is not None
