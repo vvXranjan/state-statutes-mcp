@@ -19,6 +19,7 @@ from __future__ import annotations
 from mcp.server.mcpserver import MCPServer
 
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
+from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
@@ -32,6 +33,7 @@ from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
+from state_statutes_mcp.adapters.oregon.adapter import OregonAdapter
 from state_statutes_mcp.adapters.rhode_island.adapter import RhodeIslandAdapter
 from state_statutes_mcp.adapters.south_carolina.adapter import SouthCarolinaAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
@@ -66,6 +68,7 @@ def build_registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
+    registry.register(ConnecticutAdapter())
     registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())
@@ -76,6 +79,7 @@ def build_registry() -> AdapterRegistry:
     registry.register(NewHampshireAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
+    registry.register(OregonAdapter())
     registry.register(RhodeIslandAdapter())
     registry.register(SouthCarolinaAdapter())
     registry.register(SouthDakotaAdapter())

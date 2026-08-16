@@ -12,15 +12,25 @@ fixture.
 
 from __future__ import annotations
 
+import io
 import json
 import urllib.error
+import urllib.request
+from contextlib import contextmanager
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
-from _mock_network import mock_urlopen, mock_urlopen_error, mock_urlopen_serving
+from _mock_network import (
+    PATCH_TARGET,
+    mock_urlopen,
+    mock_urlopen_error,
+    mock_urlopen_serving,
+)
 
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
+from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
@@ -34,6 +44,7 @@ from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
+from state_statutes_mcp.adapters.oregon.adapter import OregonAdapter
 from state_statutes_mcp.adapters.rhode_island.adapter import RhodeIslandAdapter
 from state_statutes_mcp.adapters.south_carolina.adapter import SouthCarolinaAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
@@ -145,6 +156,41 @@ SYNTHETIC_DE_SECTION_HTML = """
 """
 
 
+class _FakeResponse(io.BytesIO):
+    """A raw-bytes-backed response that behaves as a context manager,
+    matching how ``urllib.request.urlopen`` responses are used."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        return False
+
+
+@contextmanager
+def _serve_bytes(url_to_bytes: dict[str, bytes]):
+    """Serve specific URLs from ``url_to_bytes`` (raw bytes); fail on any
+    unexpected URL.
+
+    Oregon pages are Windows-1252, so the mock serves raw bytes rather
+    than the UTF-8-encoding helper. ``urlopen`` is patched on the shared
+    ``urllib.request`` module object, so an adapter's own
+    ``urllib.request.urlopen`` call is intercepted too.
+    """
+
+    def _target(url):
+        return url.full_url if isinstance(url, urllib.request.Request) else url
+
+    def fake_urlopen(url, timeout=None):
+        target = _target(url)
+        if target not in url_to_bytes:
+            raise AssertionError(f"Unexpected URL fetched in test: {target!r}")
+        return _FakeResponse(url_to_bytes[target])
+
+    with mock.patch(PATCH_TARGET, side_effect=fake_urlopen):
+        yield
+
+
 def _registry() -> AdapterRegistry:
     """Build the same registry the real server would use."""
     registry = AdapterRegistry()
@@ -155,6 +201,7 @@ def _registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
+    registry.register(ConnecticutAdapter())
     registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())
@@ -165,6 +212,7 @@ def _registry() -> AdapterRegistry:
     registry.register(NewHampshireAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
+    registry.register(OregonAdapter())
     registry.register(RhodeIslandAdapter())
     registry.register(SouthCarolinaAdapter())
     registry.register(SouthDakotaAdapter())
@@ -180,6 +228,7 @@ class TestListStates:
 
         assert result == [
             {"state_code": "AZ", "state_name": "Arizona"},
+            {"state_code": "CT", "state_name": "Connecticut"},
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "ID", "state_name": "Idaho"},
@@ -193,6 +242,7 @@ class TestListStates:
             {"state_code": "NH", "state_name": "New Hampshire"},
             {"state_code": "NV", "state_name": "Nevada"},
             {"state_code": "OH", "state_name": "Ohio"},
+            {"state_code": "OR", "state_name": "Oregon"},
             {"state_code": "RI", "state_name": "Rhode Island"},
             {"state_code": "SC", "state_name": "South Carolina"},
             {"state_code": "SD", "state_name": "South Dakota"},
@@ -876,5 +926,77 @@ class TestGetSectionNewHampshire:
         assert result["amendment_notes"] == "Source. 1971, 224:1, eff. Aug. 22, 1971."
         assert result["source_url"] == (
             "https://gc.nh.gov/rsa/html/xvi/201-a/201-a-mrg.htm"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionConnecticut:
+    def test_returns_normalized_connecticut_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # cga.ct.gov/current/pub pages captured via the Wayback Machine
+        # (the live host is unreachable from this environment).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.cga.ct.gov/current/pub/titles.htm": (
+                fixtures / "ct_titles.html"
+            ).read_text(encoding="utf-8"),
+            "https://www.cga.ct.gov/current/pub/title_53a.htm": (
+                fixtures / "ct_title53a.html"
+            ).read_text(encoding="utf-8"),
+            "https://www.cga.ct.gov/current/pub/title_42a.htm": (
+                fixtures / "ct_title42a.html"
+            ).read_text(encoding="utf-8"),
+            "https://www.cga.ct.gov/current/pub/chap_952.htm": (
+                fixtures / "ct_chap952_trimmed.html"
+            ).read_text(encoding="utf-8"),
+            "https://www.cga.ct.gov/current/pub/art_001.htm": (
+                fixtures / "ct_art001_trimmed.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "CT", "53a", "952", "53a-24")
+
+        assert result["state"] == "CT"
+        assert result["section"] == "53a-24"
+        assert result["citation"] == "Sec. 53a-24"
+        assert result["heading"] == (
+            "Offense defined. Application of sentencing provisions to motor "
+            "vehicle and drug selling violators."
+        )
+        assert result["text"].startswith(
+            "(a) The term \u201coffense\u201d means any crime or violation"
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("(1969, P.A. 828, S. 24;")
+        assert result["source_url"] == (
+            "https://www.cga.ct.gov/current/pub/chap_952.htm"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionOregon:
+    def test_returns_normalized_oregon_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # oregonlegislature.gov ORS pages captured via the Wayback Machine
+        # (the live host is unreachable from this environment). Raw
+        # Windows-1252 bytes are served.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.oregonlegislature.gov/bills_laws/ors/ors001.html": (
+                fixtures / "or_ors001_trimmed.html"
+            ).read_bytes(),
+        }
+        with _serve_bytes(served):
+            result = get_section(_registry(), "OR", "1", "1", "1.001")
+
+        assert result["state"] == "OR"
+        assert result["section"] == "1.001"
+        assert result["citation"] == "ORS 1.001"
+        assert result["heading"] == "State policy for courts."
+        assert result["text"].startswith("The Legislative Assembly hereby declares")
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == "[1981 s.s. c.3 §1]"
+        assert result["source_url"] == (
+            "https://www.oregonlegislature.gov/bills_laws/ors/ors001.html"
         )
         assert result["retrieved_at"] is not None
