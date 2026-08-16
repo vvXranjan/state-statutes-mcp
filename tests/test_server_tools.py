@@ -42,6 +42,7 @@ from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
+from state_statutes_mcp.adapters.north_carolina.adapter import NorthCarolinaAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
 from state_statutes_mcp.adapters.oregon.adapter import OregonAdapter
@@ -210,6 +211,7 @@ def _registry() -> AdapterRegistry:
     registry.register(MissouriAdapter())
     registry.register(NevadaAdapter())
     registry.register(NewHampshireAdapter())
+    registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
     registry.register(OregonAdapter())
@@ -238,6 +240,7 @@ class TestListStates:
             {"state_code": "ME", "state_name": "Maine"},
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
+            {"state_code": "NC", "state_name": "North Carolina"},
             {"state_code": "ND", "state_name": "North Dakota"},
             {"state_code": "NH", "state_name": "New Hampshire"},
             {"state_code": "NV", "state_name": "Nevada"},
@@ -998,5 +1001,36 @@ class TestGetSectionOregon:
         assert result["amendment_notes"] == "[1981 s.s. c.3 §1]"
         assert result["source_url"] == (
             "https://www.oregonlegislature.gov/bills_laws/ors/ors001.html"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionNorthCarolina:
+    def test_returns_normalized_north_carolina_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # ncleg.gov pages captured via the Wayback Machine (the live host
+        # rejects automated clients with HTTP 403). Raw bytes are served
+        # because the section documents come in two encodings (UTF-8 and
+        # Windows-1252).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/"
+            "Chapter_15/GS_15-1.html": (
+                fixtures / "nc_section_15-1.html"
+            ).read_bytes(),
+        }
+        with _serve_bytes(served):
+            result = get_section(_registry(), "NC", "15", "15", "15-1")
+
+        assert result["state"] == "NC"
+        assert result["section"] == "15-1"
+        assert result["citation"] == "G.S. 15-1"
+        assert result["heading"] == "Statute of limitations for misdemeanors."
+        assert result["text"].startswith("(a) The crimes of deceit")
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("(1826, c. 11;")
+        assert result["source_url"] == (
+            "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/"
+            "Chapter_15/GS_15-1.html"
         )
         assert result["retrieved_at"] is not None

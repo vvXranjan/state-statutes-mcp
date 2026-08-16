@@ -31,6 +31,7 @@ from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
+from state_statutes_mcp.adapters.north_carolina.adapter import NorthCarolinaAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
 from state_statutes_mcp.adapters.oregon.adapter import OregonAdapter
@@ -77,6 +78,7 @@ def build_registry() -> AdapterRegistry:
     registry.register(MissouriAdapter())
     registry.register(NevadaAdapter())
     registry.register(NewHampshireAdapter())
+    registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
     registry.register(OregonAdapter())
