@@ -30,6 +30,8 @@ from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
+from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
+from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
 from state_statutes_mcp.adapters.rhode_island.adapter import RhodeIslandAdapter
@@ -159,6 +161,8 @@ def _registry() -> AdapterRegistry:
     registry.register(MarylandAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
+    registry.register(NevadaAdapter())
+    registry.register(NewHampshireAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
     registry.register(RhodeIslandAdapter())
@@ -186,6 +190,8 @@ class TestListStates:
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "ND", "state_name": "North Dakota"},
+            {"state_code": "NH", "state_name": "New Hampshire"},
+            {"state_code": "NV", "state_name": "Nevada"},
             {"state_code": "OH", "state_name": "Ohio"},
             {"state_code": "RI", "state_name": "Rhode Island"},
             {"state_code": "SC", "state_name": "South Carolina"},
@@ -811,5 +817,64 @@ class TestGetSectionIdaho:
         assert result["source_url"] == (
             "https://legislature.idaho.gov/statutesrules/idstat/"
             "Title18/T18CH40/SECT18-4001"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionNevada:
+    def test_returns_normalized_nevada_section(self) -> None:
+        # SYNTHETIC fixtures: representative markup reproducing ONLY the
+        # VERIFIED Nevada structures (Wayback retrieval was unavailable
+        # from this environment). NOT official government captures.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.leg.state.nv.us/nrs//NRS-220.html": (
+                fixtures / "nv_chapter220.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "NV", "1", "220", "220.170")
+
+        assert result["state"] == "NV"
+        assert result["section"] == "220.170"
+        assert result["citation"] == "NRS 220.170"
+        assert result["heading"] == "Authority to acquire property."
+        assert "The department may acquire, by purchase, condemnation" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == "[1:21:1955; 1965, 219]"
+        assert result["source_url"] == (
+            "https://www.leg.state.nv.us/nrs//NRS-220.html"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionNewHampshire:
+    def test_returns_normalized_new_hampshire_section(self) -> None:
+        # SYNTHETIC fixtures: representative markup reproducing ONLY the
+        # VERIFIED New Hampshire structures (Wayback retrieval was
+        # unavailable from this environment). NOT official government
+        # captures.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://gc.nh.gov/rsa/html/xvi/201-a/201-a-mrg.htm": (
+                fixtures / "nh_chapter201a.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "NH", "16", "201-A", "201-A:1")
+
+        assert result["state"] == "NH"
+        assert result["section"] == "201-A:1"
+        assert result["citation"] == "RSA 201-A:1"
+        assert result["heading"] == "Definitions."
+        assert '"trustee" means a member of a board of library trustees.' in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == "Source. 1971, 224:1, eff. Aug. 22, 1971."
+        assert result["source_url"] == (
+            "https://gc.nh.gov/rsa/html/xvi/201-a/201-a-mrg.htm"
         )
         assert result["retrieved_at"] is not None

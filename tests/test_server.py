@@ -75,6 +75,8 @@ class TestServerToolsExposed:
             "MN",
             "MO",
             "ND",
+            "NH",
+            "NV",
             "OH",
             "RI",
             "SC",

@@ -1,0 +1,1 @@
+"""New Hampshire adapter package."""
