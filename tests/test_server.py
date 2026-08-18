@@ -68,6 +68,7 @@ class TestServerToolsExposed:
             "CT",
             "DE",
             "FL",
+            "HI",
             "ID",
             "IL",
             "KS",

@@ -22,6 +22,7 @@ from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
+from state_statutes_mcp.adapters.hawaii.adapter import HawaiiAdapter
 from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
@@ -72,6 +73,7 @@ def build_registry() -> AdapterRegistry:
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
     registry.register(ConnecticutAdapter())
+    registry.register(HawaiiAdapter())
     registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())

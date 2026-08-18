@@ -33,6 +33,7 @@ from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
+from state_statutes_mcp.adapters.hawaii.adapter import HawaiiAdapter
 from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
@@ -205,6 +206,7 @@ def _registry() -> AdapterRegistry:
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
     registry.register(ConnecticutAdapter())
+    registry.register(HawaiiAdapter())
     registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())
@@ -237,6 +239,7 @@ class TestListStates:
             {"state_code": "CT", "state_name": "Connecticut"},
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
+            {"state_code": "HI", "state_name": "Hawaii"},
             {"state_code": "ID", "state_name": "Idaho"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "KS", "state_name": "Kansas"},
@@ -436,6 +439,38 @@ class TestGetSectionFlorida:
         )
         assert result["source_url"] == (
             "https://www.flsenate.gov/Laws/Statutes/2025/Chapter775/All"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionHawaii:
+    def test_returns_normalized_hawaii_section(self) -> None:
+        # The real trimmed fixture: a verbatim slice of the official Hawaii
+        # Revised Statutes section page (data.capitol.hawaii.gov) captured
+        # Aug 17, 2026 via the fetch proxy (see docs/research/hawaii.md).
+        fixture = (
+            Path(__file__).parent / "fixtures" / "hi_section_377-4.5.html"
+        ).read_text(encoding="utf-8")
+        served = {
+            "https://data.capitol.hawaii.gov/hrscurrent/"
+            "Vol07_Ch0346-0398/HRS0377/HRS_0377-0004_0005.htm": fixture
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "HI", "7", "377", "377-4.5")
+
+        assert result["state"] == "HI"
+        assert result["section"] == "377-4.5"
+        assert result["citation"] == "Haw. Rev. Stat. Section 377-4.5"
+        assert result["heading"] == (
+            "Religious exemption from labor organization membership."
+        )
+        assert "Notwithstanding any other provision of law" in result["text"]
+        assert "Attorney General Opinions" not in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == "[L 1982, c 102, §2; am L 1983, c 124, §9]"
+        assert result["source_url"] == (
+            "https://data.capitol.hawaii.gov/hrscurrent/"
+            "Vol07_Ch0346-0398/HRS0377/HRS_0377-0004_0005.htm"
         )
         assert result["retrieved_at"] is not None
 
