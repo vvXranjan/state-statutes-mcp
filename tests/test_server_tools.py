@@ -39,6 +39,7 @@ from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
+from state_statutes_mcp.adapters.massachusetts.adapter import MassachusettsAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.montana.adapter import MontanaAdapter
@@ -211,6 +212,7 @@ def _registry() -> AdapterRegistry:
     registry.register(KansasAdapter())
     registry.register(MaineAdapter())
     registry.register(MarylandAdapter())
+    registry.register(MassachusettsAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
     registry.register(MontanaAdapter())
@@ -243,6 +245,7 @@ class TestListStates:
             {"state_code": "ID", "state_name": "Idaho"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "KS", "state_name": "Kansas"},
+            {"state_code": "MA", "state_name": "Massachusetts"},
             {"state_code": "MD", "state_name": "Maryland"},
             {"state_code": "ME", "state_name": "Maine"},
             {"state_code": "MN", "state_name": "Minnesota"},
@@ -664,6 +667,41 @@ class TestGetSectionMinnesota:
         assert result["amendment_notes"].startswith("1984 c 480 s 12")
         assert result["source_url"] == (
             "https://www.revisor.mn.gov/statutes/cite/3C.12"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionMassachusetts:
+    def test_returns_normalized_massachusetts_section(self) -> None:
+        # The real trimmed fixtures: verbatim slices of the official
+        # malegislature.gov General Laws pages captured on Aug 20 2026 via
+        # the r.jina.ai proxy with X-Return-Format: html (see
+        # docs/research/massachusetts.md).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleI/Chapter4/Section7": (
+                fixtures / "ma_sec7.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(
+                _registry(), "MA", "Part I Title I", "4", "7"
+            )
+
+        assert result["state"] == "MA"
+        assert result["section"] == "7"
+        assert result["citation"] == "G.L. c. 4, § 7"
+        assert result["heading"] == (
+            "Definitions of statutory terms; statutory construction"
+        )
+        assert result["text"].startswith(
+            "Section 7. In construing statutes the following words"
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == (
+            "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleI/"
+            "Chapter4/Section7"
         )
         assert result["retrieved_at"] is not None
 

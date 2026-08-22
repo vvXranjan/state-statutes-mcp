@@ -1,0 +1,187 @@
+<main>
+            <div class="titleBar clearfix">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-7 col-md-8">
+                <h1>General Laws
+                    <small class="generalCourtSubTitle"></small>
+                </h1>
+            </div>
+            <div class="hidden-xs col-sm-5 col-md-4">
+                <form action="/Search" method="get">        <h2 class="sr-only">Search the Legislature</h2>
+    <label class="sr-only" for="detailSearch">Search the Legislature</label>
+    <div class="typeahead-container">
+        <div class="typeahead-field">
+            <div class="input-group typeahead-query ">
+                <input id="detailSearch" name="SearchTerms" class="searchBox form-control" type="search" data-tt-search-type="Bills, GeneralLaws, SessionLaws, Committees, Legislators, Events, Journals, Reports, Videos, Amendments, ClerkContents" data-tt-search-reset="Bills, GeneralLaws, SessionLaws, Committees, Legislators, Events, Journals, Reports, Videos, Amendments, ClerkContents" data-tt-url="/TypeAheadSearch" data-tt-branch="" data-tt-limit="7" aria-haspopup="true" aria-autocomplete="list" autocomplete="off" placeholder="Search the Legislature...">
+
+                <div class="input-group-btn typeahead-button">
+                    <button type="submit" class="btn btn-primary searchButton" aria-label="Search the Legislature">
+                                <span class="fa fa-search"></span>
+                                <span class="sr-only">Search</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8">
+                <div class="hidden-print">
+                    <h2 style="font-size: 1.7em; display:inline-block">Browse General Laws</h2>
+                	<div class="row">
+                		<div class="col-xs-12 form-horizontal">
+                	        <h3 class="h4">Search General Laws</h3>
+                          <form action="/Laws/GeneralLaws/Search" method="get">        <h2 class="sr-only">Search General Laws</h2>
+    <label class="sr-only" for="generalLawDetailSearch">Search General Laws</label>
+    <div class="typeahead-container">
+        <div class="typeahead-field">
+            <div class="input-group typeahead-query ">
+                <input id="generalLawDetailSearch" name="SearchTerms" class="searchBox form-control" type="search" data-tt-search-type="GeneralLaws" data-tt-search-reset="GeneralLaws" data-tt-url="/TypeAheadSearch" data-tt-branch="" data-tt-limit="7" aria-haspopup="true" aria-autocomplete="list" autocomplete="off" placeholder="Search General Laws...">
+
+                <div class="input-group-btn typeahead-button">
+                    <button type="submit" class="btn btn-primary searchButton" aria-label="Search General Laws">
+                                <span class="fa fa-search"></span>
+                                <span class="sr-only">Search</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+                		</div>
+                	</div>
+                	<hr>
+                    <div class="row">
+                        
+<form action="/Laws/GeneralLaws/GoTo" method="post" novalidate="novalidate">      <div class="col-xs-12 form-inline generalLawsDirect">
+          <h3 class="h4">Go Directly to a General Law</h3>
+          <div class="form-group">
+              <label for="ChapterGoTo">Chapter</label>
+              <input class="form-control" data-val="true" data-val-required="The Chapter field is required." id="ChapterGoTo" name="ChapterGoTo" type="text" value="">
+              <span class="field-validation-valid" data-valmsg-for="ChapterGoTo" data-valmsg-replace="true"></span>
+          </div>
+          <div class="form-group">
+              <label for="SectionGoTo">Section</label>
+              <input class="form-control" id="SectionGoTo" name="SectionGoTo" type="text" value="">
+              <span class="field-validation-valid" data-valmsg-for="SectionGoTo" data-valmsg-replace="true"></span>
+          </div>
+          <button type="submit" class="btn btn-primary">Go <span class="sr-only">to General Law</span><span class="fa fa-angle-right"></span></button>
+      </div>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8CD79P9FoTdIuDvqC_BDfCvQKjjFOF6aeYGiCgxpyT7qGo4sHXQFbEcAKAQlms1a140PVLvRw9CAzNCmM3HcepuWUcdE8gf7u-1B975HdQATZaobooaNsBQjeR9BNxUArr2y7L-SU9NcGgJhO3XossY"></form>
+                    </div>
+                	<hr>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <h3 class="h4">Explore the General Laws by part</h3>
+                        <ul class="generalLawsList">
+                                <li><a href="/Laws/GeneralLaws/PartI">
+                                    <span class="part">Part I</span>
+                                    <span class="partTitle">ADMINISTRATION OF THE GOVERNMENT</span>
+                                    <span class="chapters">Ch<span class="sr-only">apters</span>. 1-182</span>
+                                </a></li>
+                                <li><a href="/Laws/GeneralLaws/PartII">
+                                    <span class="part">Part II</span>
+                                    <span class="partTitle">REAL AND PERSONAL PROPERTY AND DOMESTIC RELATIONS</span>
+                                    <span class="chapters">Ch<span class="sr-only">apters</span>. 183-210</span>
+                                </a></li>
+                                <li><a href="/Laws/GeneralLaws/PartIII">
+                                    <span class="part">Part III</span>
+                                    <span class="partTitle">COURTS, JUDICIAL OFFICERS AND PROCEEDINGS IN CIVIL CASES</span>
+                                    <span class="chapters">Ch<span class="sr-only">apters</span>. 211-262</span>
+                                </a></li>
+                                <li><a href="/Laws/GeneralLaws/PartIV">
+                                    <span class="part">Part IV</span>
+                                    <span class="partTitle">CRIMES, PUNISHMENTS AND PROCEEDINGS  IN CRIMINAL CASES</span>
+                                    <span class="chapters">Ch<span class="sr-only">apters</span>. 263-280</span>
+                                </a></li>
+                                <li><a href="/Laws/GeneralLaws/PartV">
+                                    <span class="part">Part V</span>
+                                    <span class="partTitle">THE GENERAL LAWS, AND EXPRESS REPEAL OF CERTAIN ACTS AND RESOLVES</span>
+                                    <span class="chapters">Ch<span class="sr-only">apters</span>. 281-282</span>
+                                </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <p>
+                    <strong>General Laws</strong> are Session Laws or sections of Session Laws that are permanent in nature and of general application. General Laws are codified according to subject matter in a multi-volume publication entitled the General Laws of Massachusetts. The official version of the General Laws is now published every two years, with cumulative pamphlets released periodically. This site provides an unofficial version of the General Laws, available through the index below or search feature.
+                </p>
+                <hr>
+                <div class="well well-sm generalLawsDisclaimer"><div class="ExternalClass637F5D3AA9EA4B119F38C4014F9907A8">NOTICE: This is NOT the official version of the General Laws of Massachusetts. While reasonable efforts have been made to ensure the accuracy of the data provided, do not rely on this information without first checking the Official Edition of the General Laws of Massachusetts. If you require legal advice or counsel, please consult a lawyer. <br> <br> This site is periodically updated to reflect any changes made to the General Laws. This site includes all amendments to the General Laws passed before <strong>May 31, 2026</strong>, for laws enacted since that time, see the <a href="/Laws/SessionLaws/Acts/2026">2026 Session Laws</a>.</div></div>
+            </div>
+            <div class="col-xs-12 col-sm-4">
+                <aside class="sidebar">
+                    <h2 class="h3">Most Popular General Laws</h2>
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-striped popularTable lawsTable">
+                            <caption class="sr-only">Popular General Laws</caption>
+                            
+                                
+<thead>
+    <tr>
+        <th scope="col" class="numberCol">Chapter</th>
+        <th scope="col" class="titleCol">Section Name</th>
+    </tr>
+</thead>
+<tbody>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartI/TitleX/Chapter66/Section10">&nbsp;MGL c.66 §10</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Inspection and copies of public records; requests; written responses; extension of time; fees">Inspection and copies of public records; requests; written responses; extension of time; fees</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartIII/TitleV/Chapter260/Section2A">&nbsp;MGL c.260 §2A</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Tort, contract to recover for personal injuries, and replevin actions">Tort, contract to recover for personal injuries, and replevin actions</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartI/TitleXVI/Chapter112/Section12N">&nbsp;MGL c.112 §12N</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Abortion; pregnancy existing for 24 weeks or more">Abortion; pregnancy existing for 24 weeks or more</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section148">&nbsp;MGL c.149 §148</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Payment of wages; commissions; exemption by contract; persons deemed employers; provision for cashing check or draft; violation of statute">Payment of wages; commissions; exemption by contract; persons deemed employers; provision for cashing check or draft; violation of statute</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartII/TitleI/Chapter186/Section15b">&nbsp;MGL c.186 §15b</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Entrance of premises prior to termination of lease;  payments;  receipts;  interest;  records;  security deposits">Entrance of premises prior to termination of lease;  payments;  receipts;  interest;  records;  security deposits</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/Parti/Titlexvii/Chapter123/Section12">&nbsp;MGL c.123 §12</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Emergency restraint and hospitalization of persons posing risk of serious harm by reason of mental illness">Emergency restraint and hospitalization of persons posing risk of serious harm by reason of mental illness</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartI/TitleXV/Chapter93A/Section9">&nbsp;MGL c.93A §9</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Civil actions and remedies; class action; demand for relief; damages; costs; exhausting administrative remedies">Civil actions and remedies; class action; demand for relief; damages; costs; exhausting administrative remedies</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartI/TitleXXI/Chapter149/Section24l">&nbsp;MGL c.149 §24l</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Massachusetts Noncompetition Agreement Act">Massachusetts Noncompetition Agreement Act</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/PartI/TitleXVII/Chapter123/Section16">&nbsp;MGL c.123 §16</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Hospitalization of persons incompetent to stand trial or not guilty by reason of mental illness; examination period; commitment; hearing; restrictions; dismissal of criminal charges">Hospitalization of persons incompetent to stand trial or not guilty by reason of mental illness; examination period; commitment; hearing; restrictions; dismissal of criminal charges</td>
+        </tr>
+        <tr>
+            <td><a href="/Laws/GeneralLaws/Partiv/Titlei/Chapter269/Section10">&nbsp;MGL c.269 §10</a></td>
+            <td data-toggle="tooltip" data-placement="top" data-container="body" data-aria-describedby="none" title="" data-original-title="Carrying dangerous weapons;  possession of machine gun or sawed-off shotguns;  possession of large capacity weapon or large capacity feeding device;  punishment">Carrying dangerous weapons;  possession of machine gun or sawed-off shotguns;  possession of large capacity weapon or large capacity feeding device;  punishment</td>
+        </tr>
+</tbody>
+
+                            
+                        </table>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</div>
+
+        </main>
