@@ -12,11 +12,11 @@ Research performed Aug 15, 2026. Findings labeled:
 - **STOPPED** — source unusable without auth/API key/JS execution/browser
   instrumentation.
 
-33 adapters are already implemented (WA, TX, IL, VA, DE, FL, SD, ME, MO,
+34 adapters are already implemented (WA, TX, IL, VA, DE, FL, SD, ME, MO,
 VT, WV, MN, AZ, KS, ND, MD, SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH,
-CT, OR, NC, KY, IA, NM). This matrix classifies the remaining 17 states.
-Each row records the adapter family the state would map to (A–K), its
-reachability, and its batch recommendation.
+CT, OR, NC, KY, IA, NM, OK). This matrix classifies the remaining 16
+states. Each row records the adapter family the state would map to (A–K),
+its reachability, and its batch recommendation.
 
 Family legend (from research):
 
@@ -35,7 +35,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (33)
+## Implemented (34)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -72,16 +72,16 @@ Family legend (from research):
 | Kentucky | KY | `kentucky` | I (per-section PDF) | VERIFIED live |
 | Iowa | IA | `iowa` | I (per-section PDF, versioned year) | VERIFIED live |
 | New Mexico | NM | `new_mexico` | I (chapter-level PDF) | VERIFIED live |
+| Oklahoma | OK | `oklahoma` | I (per-title PDF, flat/chaptered) | VERIFIED live |
 
 ---
 
-## Remaining 17 States
+## Remaining 16 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented except Michigan (still remaining, in Group
 1); see the Implemented table above. Only Groups 5 and 6 hold
-un-implemented states other than Michigan, Oklahoma (Group 4), and Utah
-(Group 5).
+un-implemented states other than Michigan and Utah (Group 5).
 
 ### Group 1 — One file per section (Family A)
 
@@ -120,13 +120,10 @@ this group.
 
 ### Group 4 — Bulk PDF/RTF (Family I)
 
-**Kentucky (KY), Iowa (IA), and New Mexico (NM) are now IMPLEMENTED** (the
-PDF-family adapters, sharing `fetch_bytes` + `extract_pdf_text`); they are
-moved to the Implemented table above. Remaining PDF-family states:
-
-| State | Official source | Reachability | Discovery | Section retrieval | Hierarchy | Citation | Version/year | 404 signal | Family | Confidence | Difficulty | Batch |
-|-------|-----------------|--------------|-----------|-------------------|-----------|----------|--------------|------------|--------|------------|------------|-------|
-| **Oklahoma** | `oklegislature.gov/OK_Statutes/CompleteTitles/os{t}.pdf` | **VERIFIED live** (200) | Old static page `osstatuestitle.html` lists titles | Per-title bulk PDF | Title → Chapter → Section | `Okla. Stat. tit. {t}, § {c}-{s}` | Current-code | (new aspx is shell) | I (bulk PDF) | MEDIUM | HIGH (title granularity) | OK alone |
+**Kentucky (KY), Iowa (IA), New Mexico (NM), and Oklahoma (OK) are now
+IMPLEMENTED** (the PDF-family adapters, sharing `fetch_bytes` +
+`extract_pdf_text`); they are moved to the Implemented table above. No
+PDF-family states remain.
 
 ### Group 5 — Blocked live, unverified or fixture candidates (VERIFIED pattern or known URL)
 

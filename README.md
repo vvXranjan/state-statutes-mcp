@@ -5,7 +5,7 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**33 / 50 states implemented** on the `feature/framework` branch.
+**34 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
@@ -19,13 +19,13 @@ from the official state sources via state-specific adapters.
 | IL | Illinois | NM | New Mexico |
 | KS | Kansas | NV | Nevada |
 | KY | Kentucky | OH | Ohio |
-| MA | Massachusetts | OR | Oregon |
-| MD | Maryland | RI | Rhode Island |
-| ME | Maine | SC | South Carolina |
-| SD | South Dakota | VA | Virginia |
-| TX | Texas | VT | Vermont |
-| WA | Washington | WI | Wisconsin |
-| WV | West Virginia | | |
+| MA | Massachusetts | OK | Oklahoma |
+| MD | Maryland | OR | Oregon |
+| ME | Maine | RI | Rhode Island |
+| SD | South Dakota | SC | South Carolina |
+| TX | Texas | VA | Virginia |
+| WA | Washington | VT | Vermont |
+| WV | West Virginia | WI | Wisconsin |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -94,10 +94,10 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- 17 states remain. Kentucky, Iowa, and New Mexico are implemented (the
-  PDF-family adapters, using the shared binary-fetch + PDF-extraction
-  infrastructure). The next realistic PDF-family candidate is Oklahoma, and
-  Michigan (pending re-verification of its host). Ten states (GA, AR, CO,
-  TN, MS, IN, AL, CA, NY, PA) are currently stopped behind auth walls / API
-  keys / JS-only interfaces.
+- 16 states remain. Kentucky, Iowa, New Mexico, and Oklahoma are implemented
+  (the PDF-family adapters, using the shared binary-fetch + PDF-extraction
+  infrastructure). The next realistic candidate is Michigan (pending
+  re-verification of its host). Ten states (GA, AR, CO, TN, MS, IN, AL, CA,
+  NY, PA) are currently stopped behind auth walls / API keys / JS-only
+  interfaces.
 - See `docs/research/` for planning notes.

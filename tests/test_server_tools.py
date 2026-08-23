@@ -53,6 +53,7 @@ from state_statutes_mcp.adapters.new_mexico.adapter import NewMexicoAdapter
 from state_statutes_mcp.adapters.north_carolina.adapter import NorthCarolinaAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
+from state_statutes_mcp.adapters.oklahoma.adapter import OklahomaAdapter
 from state_statutes_mcp.adapters.oregon.adapter import OregonAdapter
 from state_statutes_mcp.adapters.rhode_island.adapter import RhodeIslandAdapter
 from state_statutes_mcp.adapters.south_carolina.adapter import SouthCarolinaAdapter
@@ -229,6 +230,7 @@ def _registry() -> AdapterRegistry:
     registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
+    registry.register(OklahomaAdapter())
     registry.register(OregonAdapter())
     registry.register(RhodeIslandAdapter())
     registry.register(SouthCarolinaAdapter())
@@ -267,6 +269,7 @@ class TestListStates:
             {"state_code": "NM", "state_name": "New Mexico"},
             {"state_code": "NV", "state_name": "Nevada"},
             {"state_code": "OH", "state_name": "Ohio"},
+            {"state_code": "OK", "state_name": "Oklahoma"},
             {"state_code": "OR", "state_name": "Oregon"},
             {"state_code": "RI", "state_name": "Rhode Island"},
             {"state_code": "SC", "state_name": "South Carolina"},
@@ -1011,6 +1014,37 @@ class TestGetSectionOhio:
         assert result["amendment_notes"].startswith("September 10, 2012")
         assert result["source_url"] == (
             "https://codes.ohio.gov/ohio-revised-code/section-2901.01"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionOklahoma:
+    def test_returns_normalized_oklahoma_section(self) -> None:
+        # The real trimmed fixtures: page-range subsets of the official
+        # Oklahoma per-title PDFs captured live Aug 23 2026 (see
+        # docs/research/oklahoma.md). Oklahoma section retrieval fetches the
+        # title PDF (os21.pdf) and locates the requested section in its body.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.oklegislature.gov/OK_Statutes/CompleteTitles/os21.pdf": (
+                fixtures / "ok_title21_section_701.7.pdf"
+            ).read_bytes(),
+        }
+        with mock_urlopen_serving_bytes(served):
+            result = get_section(_registry(), "OK", "21", "21", "21-701.7")
+
+        assert result["state"] == "OK"
+        assert result["section"] == "21-701.7"
+        assert result["citation"] == "Okla. Stat. tit. 21, § 21-701.7"
+        assert result["heading"] == "Murder in the first degree."
+        assert result["text"].startswith(
+            "A.  A person commits murder in the first degree"
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is not None
+        assert result["source_url"] == (
+            "https://www.oklegislature.gov/OK_Statutes/"
+            "CompleteTitles/os21.pdf"
         )
         assert result["retrieved_at"] is not None
 
