@@ -128,11 +128,12 @@ class NewMexicoAdapter(BaseStateAdapter):
     )
 
     # A section start in an extracted chapter PDF, e.g. '1-2-1. ',
-    # '1-1-1.1. '. Anchored to a line start and requiring the trailing
-    # period + whitespace so inline citations in the body ("Section 1-1-13
-    # NMSA 1978") and cross-references are never mistaken for boundaries.
+    # '1-1-1.1. ', '22A-1-1. ' (lettered chapters like 22A are VERIFIED).
+    # Anchored to a line start and requiring the trailing period +
+    # whitespace so inline citations in the body ("Section 1-1-13 NMSA
+    # 1978") and cross-references are never mistaken for boundaries.
     _SECTION_START = re.compile(
-        r"^(\d{1,2})-(\d{1,2})-(\d{1,3}(?:\.\d+)?)\.\s+",
+        r"^(\d{1,2}[A-Z]?)-(\d{1,2})-(\d{1,3}(?:\.\d+)?)\.\s+",
         re.MULTILINE,
     )
 

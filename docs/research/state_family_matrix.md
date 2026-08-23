@@ -75,7 +75,13 @@ Family legend (from research):
 
 ---
 
-## Remaining 33 States
+## Remaining 17 States
+
+Groups 1-3 below originally described candidate families. All states in
+Groups 1-3 are now implemented except Michigan (still remaining, in Group
+1); see the Implemented table above. Only Groups 5 and 6 hold
+un-implemented states other than Michigan, Oklahoma (Group 4), and Utah
+(Group 5).
 
 ### Group 1 — One file per section (Family A)
 
@@ -236,7 +242,9 @@ states); B4 (OH + RI) and B5 (WI + ID) remain.
   - MD article-level refs (article replaces title).
   - SC chapter-document embedded sections (family B).
   - Synthetic-title mapping for MN (adopted for the no-title state).
-  - MA 4-level flattening, KY/IA/NM PDF/RTF extraction: not yet adopted.
+  - MA 4-level flattening (adopted).
+  - KY/IA/NM PDF extraction (adopted; per-title PDFs for OK are the
+    remaining PDF-family candidate).
 - Assertion set per state stays the 15-case matrix from Maine (identity,
   URL construction, title/chapter/section discovery, retrieval,
   cross-checks, citation parsing, normalization, ref mismatch, malformed
@@ -247,13 +255,16 @@ states); B4 (OH + RI) and B5 (WI + ID) remain.
 
 Summary for the next session (implementing batch B4 onward):
 
-- **Committed and verified**: 17 adapters (WA TX IL VA DE FL SD ME MO VT
-  WV MN AZ KS ND MD SC); `e96d20f`..latest on `feature/framework`; 486
-  tests pass, 1 pre-existing skip; work NOT pushed.
-- **Research phase complete**; matrix lives in this file. Next action is
-  to implement **Batch B4 (OH, RI)** then **B5 (WI, ID)**, following the
-  existing per-state doc + adapter + fixture + test workflow. Reference
-  adapters: Washington (A family), Delaware/South Carolina (B family),
+- **Committed and verified**: 33 adapters (WA TX IL VA DE FL SD ME MO VT
+  WV MN AZ KS ND MD SC NE MT HI MA OH RI WI ID NV NH CT OR NC KY IA NM);
+  on `feature/framework`; 1066 tests pass, 1 pre-existing skip; the NM
+  commit (0289363) is not yet pushed.
+- **Research phase complete**; matrix lives in this file. The next
+  realistic candidate is **Oklahoma** (per-title bulk PDFs, Family I;
+  hierarchy is heterogeneous — flat Title→Section for most titles and
+  Title→Chapter→Section for a minority), then **Michigan** (pending
+  re-verification of its host). Reference adapters: Washington (A family),
+  Delaware/South Carolina (B family), Kentucky/Iowa/New Mexico (I family),
   and the MO/VT/WV fixture pattern for any batch whose live host is
   blocked.
 - **Do not** implement adapters for STOPPED states or propose framework

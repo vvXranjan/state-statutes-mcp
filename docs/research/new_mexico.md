@@ -117,8 +117,12 @@ on Aug 23, 2026, from this environment).
 
 - **VERIFIED**: decimal sections exist (e.g. `1-1-1.1`, `1-1-2.1`) and are
   captured by the section-start regex (`\d{1,3}(?:\.\d+)?`).
-- Lettered **chapter** identifiers verified (`22A`); lettered **section**
-  identifiers **UNVERIFIED** (not claimed).
+- **VERIFIED**: lettered **chapter** identifiers exist (`22A`, `24A`, `32A`,
+  `42A`, `46A`, `46B`, `59A`) and their chapter PDFs carry real sections
+  with a lettered-chapter citation prefix (e.g. `22A-1-1`). The
+  section-start regex accepts one trailing chapter letter
+  (`\d{1,2}[A-Z]?`).
+- Lettered **section** identifiers **UNVERIFIED** (not claimed).
 
 ## 14. Error behavior
 

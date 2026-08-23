@@ -65,6 +65,7 @@ NAV_PAGE_3 = (FIXTURES / "nm_nav_page3.html").read_bytes()
 NAV_PAGE_4 = (FIXTURES / "nm_nav_page4.html").read_bytes()
 CH1_PDF = (FIXTURES / "nm_ch1_sections.pdf").read_bytes()
 CH2_PDF = (FIXTURES / "nm_ch2_sections.pdf").read_bytes()
+CH22A_PDF = (FIXTURES / "nm_ch22A.pdf").read_bytes()
 
 BASE = "https://nmonesource.com/nmos/nmsa/en"
 NAV_URLS = {f"{BASE}/nav_date.do?iframe=true&page={i}": html for i, html in enumerate(
@@ -72,6 +73,7 @@ NAV_URLS = {f"{BASE}/nav_date.do?iframe=true&page={i}": html for i, html in enum
 )}
 CH1_URL = f"{BASE}/4351/1/document.do"
 CH2_URL = f"{BASE}/4359/1/document.do"
+CH22A_URL = f"{BASE}/4377/1/document.do"
 
 
 def _title_ref(identifier: str = "NMSA") -> TitleRef:
@@ -343,6 +345,55 @@ class TestRetrieveSection:
         with mock_urlopen_error(urllib.error.URLError("simulated failure")):
             with pytest.raises(AdapterUnavailableError):
                 self.adapter.retrieve_section(ref)
+
+
+class TestLetteredChapter:
+    """VERIFIED: lettered NMSA chapters (e.g. 22A) exist in the official
+    navigation and their chapter PDFs contain real sections with a
+    lettered-chapter citation prefix (e.g. 22A-1-1). The section parser
+    must recognize these, not silently return zero sections."""
+
+    def _chapter(self, identifier: str = "22A") -> ChapterRef:
+        return ChapterRef(title=_title_ref(), identifier=identifier)
+
+    def test_list_chapters_includes_lettered_chapter(self) -> None:
+        adapter = NewMexicoAdapter()
+        with mock_urlopen_serving_bytes(NAV_URLS):
+            chapters = adapter.list_chapters(_title_ref())
+        assert any(c.identifier == "22A" for c in chapters)
+
+    def test_list_sections_on_lettered_chapter_returns_sections(self) -> None:
+        # VERIFIED: Chapter 22A's PDF carries sections 22A-1-1 .. 22A-1-5.
+        adapter = NewMexicoAdapter()
+        served = {**NAV_URLS, CH22A_URL: CH22A_PDF}
+        with mock_urlopen_serving_bytes(served):
+            sections = adapter.list_sections(self._chapter("22A"))
+
+        ids = [s.identifier for s in sections]
+        assert "22A-1-1" in ids and "22A-1-5" in ids
+        assert len(ids) == len(set(ids))
+
+    def test_retrieve_lettered_chapter_section(self) -> None:
+        adapter = NewMexicoAdapter()
+        ref = SectionRef(chapter=self._chapter("22A"), identifier="22A-1-1")
+        served = {**NAV_URLS, CH22A_URL: CH22A_PDF}
+        with mock_urlopen_serving_bytes(served):
+            section = adapter.retrieve_section(ref)
+
+        assert section.citation.raw == "NM Stat. Ann. 22A-1-1"
+        assert section.heading == "Recompiled."
+        assert section.text == ""
+        assert section.status.value == "unknown"
+        assert section.source_url == CH22A_URL
+
+    def test_lettered_chapter_section_boundary(self) -> None:
+        # 22A-1-1 must not consume 22A-1-2.
+        adapter = NewMexicoAdapter()
+        ref = SectionRef(chapter=self._chapter("22A"), identifier="22A-1-1")
+        served = {**NAV_URLS, CH22A_URL: CH22A_PDF}
+        with mock_urlopen_serving_bytes(served):
+            section = adapter.retrieve_section(ref)
+        assert "22A-1-2" not in section.text
 
 
 class TestNormalize:
