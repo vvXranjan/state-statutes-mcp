@@ -5,7 +5,7 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**32 / 50 states implemented** on the `feature/framework` branch.
+**33 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
@@ -16,20 +16,21 @@ from the official state sources via state-specific adapters.
 | HI | Hawaii | ND | North Dakota |
 | IA | Iowa | NE | Nebraska |
 | ID | Idaho | NH | New Hampshire |
-| IL | Illinois | NV | Nevada |
-| KS | Kansas | OH | Ohio |
-| KY | Kentucky | OR | Oregon |
-| MA | Massachusetts | RI | Rhode Island |
-| MD | Maryland | SC | South Carolina |
-| ME | Maine | VA | Virginia |
-| SD | South Dakota | VT | Vermont |
-| TX | Texas | WI | Wisconsin |
-| WA | Washington | WV | West Virginia |
+| IL | Illinois | NM | New Mexico |
+| KS | Kansas | NV | Nevada |
+| KY | Kentucky | OH | Ohio |
+| MA | Massachusetts | OR | Oregon |
+| MD | Maryland | RI | Rhode Island |
+| ME | Maine | SC | South Carolina |
+| SD | South Dakota | VA | Virginia |
+| TX | Texas | VT | Vermont |
+| WA | Washington | WI | Wisconsin |
+| WV | West Virginia | | |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
 in `server.py`. Adapters are grouped by retrieval family (one-file-per-section
-HTML, chapter-document HTML, and JSON API); see `docs/research/` for the
+HTML, chapter-document HTML, JSON API, and PDF); see `docs/research/` for the
 per-state verification notes and `docs/research/state_family_matrix.md` for
 the 50-state family plan.
 
@@ -50,8 +51,9 @@ adapters/base.py — BaseStateAdapter (build_url, list_titles, list_chapters,
 per-state adapter → official state source → parse → normalize → StatuteSection
 ```
 
-Shared helpers: `adapters/_fetch.py` (network), `adapters/_htmltext.py`
-(tag stripping). Models: `TitleRef → ChapterRef → SectionRef` refs,
+Shared helpers: `adapters/_fetch.py` (network, text + raw bytes),
+`adapters/_htmltext.py` (tag stripping), `adapters/_pdftext.py` (PDF text
+extraction). Models: `TitleRef → ChapterRef → SectionRef` refs,
 `TocNode`, `StatuteSection`, `Citation`. Errors: framework exception
 hierarchy rooted at `StateStatutesError`.
 
@@ -92,8 +94,10 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- 20 states remain. The next realistic candidates are the PDF-family states
-  (Kentucky, Iowa, New Mexico, Oklahoma) and Michigan (pending re-verification
-  of its host). Ten states (GA, AR, CO, TN, MS, IN, AL, CA, NY, PA) are
-  currently stopped behind auth walls / API keys / JS-only interfaces.
-- See `docs/ROADMAP.md` (empty) and `docs/research/` for planning notes.
+- 17 states remain. Kentucky, Iowa, and New Mexico are implemented (the
+  PDF-family adapters, using the shared binary-fetch + PDF-extraction
+  infrastructure). The next realistic PDF-family candidate is Oklahoma, and
+  Michigan (pending re-verification of its host). Ten states (GA, AR, CO,
+  TN, MS, IN, AL, CA, NY, PA) are currently stopped behind auth walls / API
+  keys / JS-only interfaces.
+- See `docs/research/` for planning notes.

@@ -49,6 +49,7 @@ from state_statutes_mcp.adapters.montana.adapter import MontanaAdapter
 from state_statutes_mcp.adapters.nebraska.adapter import NebraskaAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
+from state_statutes_mcp.adapters.new_mexico.adapter import NewMexicoAdapter
 from state_statutes_mcp.adapters.north_carolina.adapter import NorthCarolinaAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
@@ -224,6 +225,7 @@ def _registry() -> AdapterRegistry:
     registry.register(NebraskaAdapter())
     registry.register(NevadaAdapter())
     registry.register(NewHampshireAdapter())
+    registry.register(NewMexicoAdapter())
     registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())
     registry.register(OhioAdapter())
@@ -262,6 +264,7 @@ class TestListStates:
             {"state_code": "ND", "state_name": "North Dakota"},
             {"state_code": "NE", "state_name": "Nebraska"},
             {"state_code": "NH", "state_name": "New Hampshire"},
+            {"state_code": "NM", "state_name": "New Mexico"},
             {"state_code": "NV", "state_name": "Nevada"},
             {"state_code": "OH", "state_name": "Ohio"},
             {"state_code": "OR", "state_name": "Oregon"},
@@ -737,6 +740,74 @@ class TestGetSectionArizona:
         assert result["retrieved_at"] is not None
 
 
+class TestGetSectionIllinois:
+    def test_returns_normalized_illinois_section(self) -> None:
+        # Illinois's section content is a hand-written synthetic mock (the
+        # same one used by test_illinois_adapter.py): the ilga.gov host is
+        # unreachable from this environment, so no real fixture can be
+        # captured. Its citation/heading/body/history text matches what was
+        # independently verified via two real fetches during design. The
+        # adapter fetches the section file via the shared network boundary,
+        # so mock_urlopen (any URL) serves the mock.
+        synthetic_mock_section_text = """
+        <html><body>
+        <p>(720 ILCS 5/9-2) (from Ch. 38, par. 9-2)</p>
+        <p>Sec. 9-2. Second degree murder.
+        (a) A person commits the offense of second degree murder when he or
+        she commits the offense of first degree murder as defined in
+        paragraph (1) or (2) of subsection (a) of Section 9-1 of this Code
+        and either of the following mitigating factors are present:
+        (d) Sentence. Second degree murder is a Class 1 felony.</p>
+        <p>(Source: P.A. 100-460, eff. 1-1-18.)</p>
+        </body></html>
+        """
+        with mock_urlopen(synthetic_mock_section_text):
+            result = get_section(_registry(), "IL", "720", "5", "9-2")
+
+        assert result["state"] == "IL"
+        assert result["section"] == "9-2"
+        assert result["citation"] == "(720 ILCS 5/9-2) (from Ch. 38, par. 9-2)"
+        assert result["heading"] == "Second degree murder"
+        assert "second degree murder" in result["text"]
+        assert "Class 1 felony" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] == "(Source: P.A. 100-460, eff. 1-1-18.)"
+        assert result["source_url"] == (
+            "https://www.ilga.gov/ftp/ILCS/Ch%200720/Act%200005/"
+            "072000050K9-2.html"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionTexas:
+    def test_returns_normalized_texas_section(self) -> None:
+        # The real fixture: a verbatim capture of the official Texas
+        # Penal Code chapter page (tcss.legis.texas.gov/resources/PE/htm/
+        # PE.19.htm). The adapter fetches the whole chapter document and
+        # extracts the requested section by anchor, so the real fixture is
+        # served for the chapter URL.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://tcss.legis.texas.gov/resources/PE/htm/PE.19.htm": (
+                fixtures / "texas_current_pe19.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "TX", "PE", "19", "19.01")
+
+        assert result["state"] == "TX"
+        assert result["section"] == "19.01"
+        assert result["citation"] == "Sec. 19.01. TYPES OF CRIMINAL HOMICIDE."
+        assert result["heading"] == "TYPES OF CRIMINAL HOMICIDE."
+        assert "criminal homicide" in result["text"]
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("Acts 1973, 63rd Leg.")
+        assert result["source_url"] == (
+            "https://tcss.legis.texas.gov/resources/PE/htm/PE.19.htm#19.01"
+        )
+        assert result["retrieved_at"] is not None
+
+
 class TestGetSectionKentucky:
     def test_returns_normalized_kentucky_section(self) -> None:
         # The real fixtures: verbatim captures of the official Kentucky
@@ -1091,6 +1162,51 @@ class TestGetSectionNewHampshire:
         assert result["amendment_notes"] == "Source. 1971, 224:1, eff. Aug. 22, 1971."
         assert result["source_url"] == (
             "https://gc.nh.gov/rsa/html/xvi/201-a/201-a-mrg.htm"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionNewMexico:
+    def test_returns_normalized_new_mexico_section(self) -> None:
+        # The real fixtures: verbatim captures of the official New Mexico
+        # source (nmonesource.com) taken live on Aug 23 2026 — the
+        # navigation pages are HTML (used to resolve the chapter's opaque
+        # item ID) and the chapter is a real PDF (see
+        # docs/research/new_mexico.md). New Mexico section retrieval needs
+        # the navigation pages to resolve chapter 1 -> item 4351, then
+        # fetches the chapter PDF and locates the section inside it.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://nmonesource.com/nmos/nmsa/en/nav_date.do?iframe=true&page=1": (
+                fixtures / "nm_nav_page1.html"
+            ).read_bytes(),
+            "https://nmonesource.com/nmos/nmsa/en/nav_date.do?iframe=true&page=2": (
+                fixtures / "nm_nav_page2.html"
+            ).read_bytes(),
+            "https://nmonesource.com/nmos/nmsa/en/nav_date.do?iframe=true&page=3": (
+                fixtures / "nm_nav_page3.html"
+            ).read_bytes(),
+            "https://nmonesource.com/nmos/nmsa/en/nav_date.do?iframe=true&page=4": (
+                fixtures / "nm_nav_page4.html"
+            ).read_bytes(),
+            "https://nmonesource.com/nmos/nmsa/en/4351/1/document.do": (
+                fixtures / "nm_ch1_sections.pdf"
+            ).read_bytes(),
+        }
+        with mock_urlopen_serving_bytes(served):
+            result = get_section(_registry(), "NM", "NMSA", "1", "1-1-1")
+
+        assert result["state"] == "NM"
+        assert result["section"] == "1-1-1"
+        assert result["citation"] == "NM Stat. Ann. 1-1-1"
+        assert result["heading"] == "Election Code."
+        assert result["text"].startswith(
+            'Chapter 1 NMSA 1978 may be cited as the "Election Code".'
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("1953 Comp., § 3-1-1")
+        assert result["source_url"] == (
+            "https://nmonesource.com/nmos/nmsa/en/4351/1/document.do"
         )
         assert result["retrieved_at"] is not None
 

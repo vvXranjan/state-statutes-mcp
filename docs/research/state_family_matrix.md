@@ -12,10 +12,11 @@ Research performed Aug 15, 2026. Findings labeled:
 - **STOPPED** — source unusable without auth/API key/JS execution/browser
   instrumentation.
 
-17 adapters are already implemented (WA, TX, IL, VA, DE, FL, SD, ME, MO,
-VT, WV, MN, AZ, KS, ND, MD, SC). This matrix classifies the remaining 33
-states. Each row records the adapter family the state would map to (A–K),
-its reachability, and its batch recommendation.
+33 adapters are already implemented (WA, TX, IL, VA, DE, FL, SD, ME, MO,
+VT, WV, MN, AZ, KS, ND, MD, SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH,
+CT, OR, NC, KY, IA, NM). This matrix classifies the remaining 17 states.
+Each row records the adapter family the state would map to (A–K), its
+reachability, and its batch recommendation.
 
 Family legend (from research):
 
@@ -34,7 +35,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (11)
+## Implemented (33)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -55,6 +56,22 @@ Family legend (from research):
 | South Carolina | SC | `south_carolina` | B (chapter HTML, embedded sections) | VERIFIED live |
 | Vermont | VT | `vermont` | B (chapter HTML; Wayback fixtures) | VERIFIED fixtures |
 | West Virginia | WV | `west_virginia` | B (chapter HTML; Wayback fixtures) | VERIFIED fixtures |
+| Nebraska | NE | `nebraska` | A (one file per section) | VERIFIED fixtures |
+| Montana | MT | `montana` | A (one file per section) | VERIFIED live |
+| Hawaii | HI | `hawaii` | A/C (one file per section; proxy captures) | VERIFIED via proxy |
+| Massachusetts | MA | `massachusetts` | A (one file per section) | VERIFIED via proxy |
+| Ohio | OH | `ohio` | A (one file per section) | VERIFIED fixtures |
+| Rhode Island | RI | `rhode_island` | A (one file per section) | VERIFIED fixtures |
+| Wisconsin | WI | `wisconsin` | A (one file per section) | VERIFIED fixtures |
+| Idaho | ID | `idaho` | A (one file per section) | VERIFIED fixtures |
+| Nevada | NV | `nevada` | B (chapter HTML; synthetic fixtures) | VERIFIED fixtures |
+| New Hampshire | NH | `new_hampshire` | B (chapter HTML; synthetic fixtures) | VERIFIED fixtures |
+| Connecticut | CT | `connecticut` | B (chapter HTML) | VERIFIED fixtures |
+| Oregon | OR | `oregon` | B (chapter HTML, latin-1) | VERIFIED fixtures |
+| North Carolina | NC | `north_carolina` | B (chapter HTML, dual encoding) | VERIFIED fixtures |
+| Kentucky | KY | `kentucky` | I (per-section PDF) | VERIFIED live |
+| Iowa | IA | `iowa` | I (per-section PDF, versioned year) | VERIFIED live |
+| New Mexico | NM | `new_mexico` | I (chapter-level PDF) | VERIFIED live |
 
 ---
 
@@ -97,11 +114,12 @@ this group.
 
 ### Group 4 — Bulk PDF/RTF (Family I)
 
+**Kentucky (KY), Iowa (IA), and New Mexico (NM) are now IMPLEMENTED** (the
+PDF-family adapters, sharing `fetch_bytes` + `extract_pdf_text`); they are
+moved to the Implemented table above. Remaining PDF-family states:
+
 | State | Official source | Reachability | Discovery | Section retrieval | Hierarchy | Citation | Version/year | 404 signal | Family | Confidence | Difficulty | Batch |
 |-------|-----------------|--------------|-----------|-------------------|-----------|----------|--------------|------------|--------|------------|------------|-------|
-| **Kentucky** | `apps.legislature.ky.gov/LAW/STATUTES/` | **VERIFIED live** (200) | `index.aspx` → `chapter.aspx?id=` (chapter catchlines) | `statute.aspx?id=N` → **per-section PDF** (`KRS1_400(K).pdf`) | Title → Chapter → Section | `KRS {ch}.{s}` | Current-code | 404 | I (PDF) | HIGH | MEDIUM (PDF text extraction) | KY alone |
-| **New Mexico** | `nmonesource.com/nmos/nmsa/en/{id}/{id}/document.do` | **VERIFIED live** (200) | Chapter index pages | Chapter page → **PDF** (160 pages, e.g. 37-1-1..37-1-30) | Chapter → Section | `N.M. Stat. Ann. § {c}-{s}` | Current-code | 404 | I (PDF) | MEDIUM | HIGH (chapter PDF, no per-section URL) | NM alone |
-| **Iowa** | `legis.iowa.gov/law/iowaCode/` | **VERIFIED live** (200) | `sections?codeChapter={n}` listing (`§1.1 - State boundaries`) | Per-section **PDF/RTF** `legis.iowa.gov/docs/code/2026/{n}.pdf|.rtf` | Title → Chapter → Section | `Iowa Code § {c}.{s}` | Versioned (year in URL) | 404 | I (PDF/RTF) | HIGH | MEDIUM | IA alone |
 | **Oklahoma** | `oklegislature.gov/OK_Statutes/CompleteTitles/os{t}.pdf` | **VERIFIED live** (200) | Old static page `osstatuestitle.html` lists titles | Per-title bulk PDF | Title → Chapter → Section | `Okla. Stat. tit. {t}, § {c}-{s}` | Current-code | (new aspx is shell) | I (bulk PDF) | MEDIUM | HIGH (title granularity) | OK alone |
 
 ### Group 5 — Blocked live, unverified or fixture candidates (VERIFIED pattern or known URL)

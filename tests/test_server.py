@@ -84,6 +84,7 @@ class TestServerToolsExposed:
             "ND",
             "NE",
             "NH",
+            "NM",
             "NV",
             "OH",
             "OR",
