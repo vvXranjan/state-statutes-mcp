@@ -27,6 +27,7 @@ from _mock_network import (
     mock_urlopen,
     mock_urlopen_error,
     mock_urlopen_serving,
+    mock_urlopen_serving_bytes,
 )
 
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
@@ -37,6 +38,7 @@ from state_statutes_mcp.adapters.hawaii.adapter import HawaiiAdapter
 from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
+from state_statutes_mcp.adapters.kentucky.adapter import KentuckyAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.massachusetts.adapter import MassachusettsAdapter
@@ -210,6 +212,7 @@ def _registry() -> AdapterRegistry:
     registry.register(HawaiiAdapter())
     registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
+    registry.register(KentuckyAdapter())
     registry.register(MaineAdapter())
     registry.register(MarylandAdapter())
     registry.register(MassachusettsAdapter())
@@ -245,6 +248,7 @@ class TestListStates:
             {"state_code": "ID", "state_name": "Idaho"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "KS", "state_name": "Kansas"},
+            {"state_code": "KY", "state_name": "Kentucky"},
             {"state_code": "MA", "state_name": "Massachusetts"},
             {"state_code": "MD", "state_name": "Maryland"},
             {"state_code": "ME", "state_name": "Maine"},
@@ -727,6 +731,48 @@ class TestGetSectionArizona:
         assert result["status"] == "unknown"
         assert result["amendment_notes"] is None
         assert result["source_url"] == "https://www.azleg.gov/ars/28/00101.htm"
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionKentucky:
+    def test_returns_normalized_kentucky_section(self) -> None:
+        # The real fixtures: verbatim captures of the official Kentucky
+        # source (apps.legislature.ky.gov) taken live on Aug 23 2026 — the
+        # index/chapter pages are HTML and the section is a real PDF (see
+        # docs/research/kentucky.md). Kentucky section retrieval needs the
+        # index (to resolve the opaque chapter ID) and the chapter page (to
+        # resolve the opaque section ID) before fetching the PDF, so all
+        # three are served.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://apps.legislature.ky.gov/LAW/STATUTES/": (
+                fixtures / "ky_index.html"
+            ).read_bytes(),
+            "https://apps.legislature.ky.gov/LAW/STATUTES/chapter.aspx?id=38124": (
+                fixtures / "ky_chapter205.html"
+            ).read_bytes(),
+            "https://apps.legislature.ky.gov/LAW/STATUTES/statute.aspx?id=7624": (
+                fixtures / "ky_section_205-010.pdf"
+            ).read_bytes(),
+        }
+        with mock_urlopen_serving_bytes(served):
+            result = get_section(_registry(), "KY", "XVII", "205", "205.010")
+
+        assert result["state"] == "KY"
+        assert result["section"] == "205.010"
+        assert result["citation"] == "KRS 205.010"
+        assert result["heading"] == "Definitions for chapter."
+        assert result["text"].startswith(
+            "As used in this chapter, unless the context requires otherwise"
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith(
+            "Effective: June 20, 2005\nHistory: Amended 2005 Ky."
+        )
+        assert result["source_url"] == (
+            "https://apps.legislature.ky.gov/LAW/STATUTES/"
+            "statute.aspx?id=7624"
+        )
         assert result["retrieved_at"] is not None
 
 

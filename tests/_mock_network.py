@@ -63,6 +63,29 @@ def mock_urlopen_serving(url_to_html: dict[str, str]):
 
 
 @contextmanager
+def mock_urlopen_serving_bytes(url_to_bytes: dict[str, bytes]):
+    """Serve specific URLs from ``url_to_bytes`` as raw bytes; fail on any
+    unexpected URL.
+
+    Identical to :func:`mock_urlopen_serving` but serves the given bytes
+    verbatim instead of UTF-8-encoding strings — required for binary
+    fixtures (e.g. the PDF documents returned by PDF-family state sources,
+    whose raw bytes must reach the adapter unmodified).
+
+    Args:
+        url_to_bytes: Mapping of exact URL string to the raw bytes to
+            serve for it.
+    """
+    def fake_urlopen(url, timeout=None):
+        if url not in url_to_bytes:
+            raise AssertionError(f"Unexpected URL fetched in test: {url!r}")
+        return _FakeResponse(url_to_bytes[url])
+
+    with mock.patch(PATCH_TARGET, side_effect=fake_urlopen):
+        yield
+
+
+@contextmanager
 def mock_urlopen_error(error: Exception):
     """Simulate a network failure by making urlopen raise ``error``.
 

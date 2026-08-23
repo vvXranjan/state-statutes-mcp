@@ -72,6 +72,7 @@ class TestServerToolsExposed:
             "ID",
             "IL",
             "KS",
+            "KY",
             "MA",
             "MD",
             "ME",
