@@ -37,6 +37,7 @@ from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
 from state_statutes_mcp.adapters.hawaii.adapter import HawaiiAdapter
 from state_statutes_mcp.adapters.idaho.adapter import IdahoAdapter
 from state_statutes_mcp.adapters.illinois.adapter import IllinoisAdapter
+from state_statutes_mcp.adapters.iowa.adapter import IowaAdapter
 from state_statutes_mcp.adapters.kansas.adapter import KansasAdapter
 from state_statutes_mcp.adapters.kentucky.adapter import KentuckyAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
@@ -213,6 +214,7 @@ def _registry() -> AdapterRegistry:
     registry.register(IdahoAdapter())
     registry.register(KansasAdapter())
     registry.register(KentuckyAdapter())
+    registry.register(IowaAdapter())
     registry.register(MaineAdapter())
     registry.register(MarylandAdapter())
     registry.register(MassachusettsAdapter())
@@ -245,6 +247,7 @@ class TestListStates:
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
             {"state_code": "HI", "state_name": "Hawaii"},
+            {"state_code": "IA", "state_name": "Iowa"},
             {"state_code": "ID", "state_name": "Idaho"},
             {"state_code": "IL", "state_name": "Illinois"},
             {"state_code": "KS", "state_name": "Kansas"},
@@ -772,6 +775,40 @@ class TestGetSectionKentucky:
         assert result["source_url"] == (
             "https://apps.legislature.ky.gov/LAW/STATUTES/"
             "statute.aspx?id=7624"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionIowa:
+    def test_returns_normalized_iowa_section(self) -> None:
+        # The real fixtures: verbatim captures of the official Iowa source
+        # (legis.iowa.gov) taken live on Aug 23 2026 — the root page is
+        # HTML (used to resolve the current Code year) and the section is a
+        # real PDF (see docs/research/iowa.md). Iowa section retrieval
+        # needs the root page to determine year=2026, then fetches the PDF.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legis.iowa.gov/law/iowaCode": (
+                fixtures / "ia_root.html"
+            ).read_bytes(),
+            "https://www.legis.iowa.gov/docs/code/2026/1.1.pdf": (
+                fixtures / "ia_section_1.1.pdf"
+            ).read_bytes(),
+        }
+        with mock_urlopen_serving_bytes(served):
+            result = get_section(_registry(), "IA", "I", "1", "1.1")
+
+        assert result["state"] == "IA"
+        assert result["section"] == "1.1"
+        assert result["citation"] == "Iowa Code § 1.1"
+        assert result["heading"] == "State boundaries."
+        assert result["text"].startswith(
+            "The boundaries of the state are as defined in the preamble"
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"].startswith("[C51, §1; R60, §1;")
+        assert result["source_url"] == (
+            "https://www.legis.iowa.gov/docs/code/2026/1.1.pdf"
         )
         assert result["retrieved_at"] is not None
 

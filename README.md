@@ -5,7 +5,7 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**31 / 50 states implemented** on the `feature/framework` branch.
+**32 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
@@ -14,17 +14,17 @@ from the official state sources via state-specific adapters.
 | DE | Delaware | MT | Montana |
 | FL | Florida | NC | North Carolina |
 | HI | Hawaii | ND | North Dakota |
-| ID | Idaho | NE | Nebraska |
-| IL | Illinois | NH | New Hampshire |
-| KS | Kansas | NV | Nevada |
-| KY | Kentucky | OH | Ohio |
-| MA | Massachusetts | OR | Oregon |
-| MD | Maryland | RI | Rhode Island |
-| ME | Maine | SC | South Carolina |
-| SD | South Dakota | VA | Virginia |
-| TX | Texas | VT | Vermont |
-| WA | Washington | WI | Wisconsin |
-| WV | West Virginia | | |
+| IA | Iowa | NE | Nebraska |
+| ID | Idaho | NH | New Hampshire |
+| IL | Illinois | NV | Nevada |
+| KS | Kansas | OH | Ohio |
+| KY | Kentucky | OR | Oregon |
+| MA | Massachusetts | RI | Rhode Island |
+| MD | Maryland | SC | South Carolina |
+| ME | Maine | VA | Virginia |
+| SD | South Dakota | VT | Vermont |
+| TX | Texas | WI | Wisconsin |
+| WA | Washington | WV | West Virginia |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly

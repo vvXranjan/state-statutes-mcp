@@ -16,6 +16,17 @@ Deliberately narrow:
   sources) can use ``pypdf`` directly; this helper exists for the common
   "whole document as one string" case.
 
+Text reconstruction: most PDFs extract cleanly with pypdf's default
+mode. A class of documents (VERIFIED for the Iowa Code's section PDFs)
+position every word as its own separately-placed text operation, which
+makes default extraction collapse to one word per line. For those, this
+helper detects the fragmentation (a page whose non-empty lines are
+overwhelmingly single words) and re-extracts that page in pypdf's layout
+mode, which recovers the visual line structure; the layout-mode output is
+emitted bottom-up, so the lines are reversed back into reading order.
+PDFs that extract cleanly in default mode (e.g. the Kentucky Code's) are
+never re-extracted, so their output is unchanged.
+
 Errors follow the existing framework convention: if the bytes cannot be
 parsed as a PDF, the underlying failure is wrapped into
 :class:`~state_statutes_mcp.core.exceptions.AdapterUnavailableError` —
@@ -33,6 +44,26 @@ from io import BytesIO
 from pypdf import PdfReader
 
 from state_statutes_mcp.core.exceptions import AdapterUnavailableError
+
+# A page whose non-empty lines are mostly single words is the signature of
+# a per-word-positioned PDF (see module docstring). Above this fraction we
+# treat the default extraction as fragmented and re-extract in layout mode.
+_FRAGMENTATION_THRESHOLD = 0.6
+
+
+def _page_text(page) -> str:
+    """Extract one page's text, falling back to layout mode if the default
+    extraction is pathologically fragmented (per-word-positioned PDFs)."""
+    text = page.extract_text() or ""
+    lines = [line for line in text.splitlines() if line.strip()]
+    if not lines:
+        return text
+    single_word = sum(1 for line in lines if len(line.split()) == 1)
+    if single_word / len(lines) <= _FRAGMENTATION_THRESHOLD:
+        return text
+    layout = page.extract_text(extraction_mode="layout") or ""
+    layout_lines = [line for line in layout.splitlines() if line.strip()]
+    return "\n".join(reversed(layout_lines))
 
 
 def extract_pdf_text(data: bytes) -> str:
@@ -54,7 +85,7 @@ def extract_pdf_text(data: bytes) -> str:
     """
     try:
         reader = PdfReader(BytesIO(data))
-        return "".join(page.extract_text() or "" for page in reader.pages)
+        return "".join(_page_text(page) for page in reader.pages)
     except Exception as exc:
         raise AdapterUnavailableError(
             f"Could not extract text from PDF data: {exc}"
