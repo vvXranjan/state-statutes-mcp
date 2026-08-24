@@ -212,3 +212,9 @@ TitleRef = title number (e.g. "1", lettered "10A")
 - The 8 exotic non-`T-C-S` citations (4-part / dotted forms) are preserved
   verbatim as identifiers; their retrieval is supported (the citation is
   matched verbatim against the returned title).
+- A small number of duplicate section citations exist in the full TOC
+  (7 confirmed, e.g. `7-10-104`, `45-35A-51.01`): two distinct records can
+  share the same `T-C-S` citation. The adapter's `_code_id_for` returns the
+  first match, and the retrieval cross-check validates the returned record
+  against the requested citation, so a shared citation resolves to the
+  first record rather than failing silently.

@@ -81,7 +81,7 @@ Family legend (from research):
 
 ---
 
-## Remaining 16 States
+## Remaining 15 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented except Michigan (still remaining, in Group
@@ -256,10 +256,14 @@ states); B4 (OH + RI) and B5 (WI + ID) remain.
 
 Summary for the next session (implementing batch B4 onward):
 
-- **Committed and verified**: 33 adapters (WA TX IL VA DE FL SD ME MO VT
-  WV MN AZ KS ND MD SC NE MT HI MA OH RI WI ID NV NH CT OR NC KY IA NM);
-  on `feature/framework`; 1066 tests pass, 1 pre-existing skip; the NM
-  commit (0289363) is not yet pushed.
+- **Historical snapshot (pre-Oklahoma)**: at the time this handoff was
+  written, 33 adapters were committed (WA TX IL VA DE FL SD ME MO VT WV MN
+  AZ KS ND MD SC NE MT HI MA OH RI WI ID NV NH CT OR NC KY IA NM) and the
+  NM commit (0289363) was not yet pushed. **Current state (post-Alabama,
+  state #35)**: 35 adapters committed on `feature/framework` (Oklahoma and
+  Alabama added since this handoff), 1132 passing tests with 1 documented
+  pre-existing Illinois real-fixture skip, and commit 7746681 (Alabama) is
+  not yet pushed.
 - **Research phase complete**; matrix lives in this file. The next
   realistic candidate is **Oklahoma** (per-title bulk PDFs, Family I;
   hierarchy is heterogeneous — flat Title→Section for most titles and
