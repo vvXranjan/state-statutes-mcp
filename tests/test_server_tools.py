@@ -66,6 +66,7 @@ from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
 from state_statutes_mcp.adapters.washington.adapter import WashingtonAdapter
 from state_statutes_mcp.adapters.west_virginia.adapter import WestVirginiaAdapter
 from state_statutes_mcp.adapters.wisconsin.adapter import WisconsinAdapter
+from state_statutes_mcp.adapters.wyoming.adapter import WyomingAdapter
 from state_statutes_mcp.core.exceptions import AdapterUnavailableError, RefMismatchError
 from state_statutes_mcp.core.registry import AdapterRegistry
 from state_statutes_mcp.server_tools import (
@@ -241,6 +242,7 @@ def _registry() -> AdapterRegistry:
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
     registry.register(WisconsinAdapter())
+    registry.register(WyomingAdapter())
     return registry
 
 
@@ -284,6 +286,7 @@ class TestListStates:
             {"state_code": "WA", "state_name": "Washington"},
             {"state_code": "WI", "state_name": "Wisconsin"},
             {"state_code": "WV", "state_name": "West Virginia"},
+            {"state_code": "WY", "state_name": "Wyoming"},
         ]
 
     def test_empty_registry_returns_empty_list(self) -> None:
@@ -1086,6 +1089,72 @@ class TestGetSectionAlabama:
         assert result["amendment_notes"] is None
         assert result["source_url"] == (
             "https://alison.legislature.state.al.us/graphql"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionWyoming:
+    def test_returns_normalized_wyoming_section(self) -> None:
+        # The real trimmed fixtures: page-range subsets of the official
+        # per-title PDFs captured live Aug 24 2026 (see
+        # docs/research/wyoming.md). Wyoming section retrieval fetches the
+        # per-title PDF (title01.pdf) and locates the requested section in
+        # its body. The network mock dispatches on HEAD (existence probe)
+        # vs GET (PDF fetch).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://wyoleg.gov/statutes/compress/title01.pdf": (
+                fixtures / "wy_title01_ch1.pdf"
+            ).read_bytes(),
+        }
+
+        import io
+        import urllib.request
+        from unittest import mock
+
+        from _mock_network import PATCH_TARGET
+
+        class _Resp(io.BytesIO):
+            def __init__(self, data: bytes, content_type: str):
+                super().__init__(data)
+                self.status = 200
+                self.headers = {"Content-Type": content_type}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc_info):
+                return False
+
+        def fake_urlopen(request, timeout=None):
+            if isinstance(request, urllib.request.Request):
+                url = request.full_url
+                method = request.get_method()
+            else:
+                url = request
+                method = "GET"
+            if method == "HEAD":
+                if url in served:
+                    return _Resp(b"", "application/pdf")
+                return _Resp(b"", "text/html")
+            if url in served:
+                return _Resp(served[url], "application/pdf")
+            return _Resp(b"<html></html>", "text/html")
+
+        with mock.patch(PATCH_TARGET, side_effect=fake_urlopen):
+            result = get_section(_registry(), "WY", "1", "1", "1-1-101")
+
+        assert result["state"] == "WY"
+        assert result["section"] == "1-1-101"
+        assert result["citation"] == "Wyo. Stat. 1-1-101"
+        assert result["heading"] == "Provisions to be liberally construed."
+        assert "The Code of Civil Procedure and all proceedings under it" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == (
+            "https://wyoleg.gov/statutes/compress/title01.pdf"
         )
         assert result["retrieved_at"] is not None
 

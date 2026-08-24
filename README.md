@@ -5,7 +5,7 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**35 / 50 states implemented** on the `feature/framework` branch.
+**36 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
@@ -26,7 +26,7 @@ from the official state sources via state-specific adapters.
 | SC | South Carolina | TX | Texas |
 | VA | Virginia | VT | Vermont |
 | WA | Washington | WI | Wisconsin |
-| WV | West Virginia | | |
+| WV | West Virginia | WY | Wyoming |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -95,10 +95,10 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- 15 states remain. Kentucky, Iowa, New Mexico, and Oklahoma are implemented
-  (the PDF-family adapters, using the shared binary-fetch + PDF-extraction
-  infrastructure); Alabama is implemented as the framework's first
-  GraphQL/JSON-POST adapter (the official ALISON Code API). The next
+- 14 states remain. Kentucky, Iowa, New Mexico, Oklahoma, and Wyoming are
+  implemented (the PDF-family adapters, using the shared binary-fetch +
+  PDF-extraction infrastructure); Alabama is implemented as the framework's
+  first GraphQL/JSON-POST adapter (the official ALISON Code API). The next
   realistic candidates are Colorado (pending its invalid-title gate) and
   New York (pending API-key access). Nine states (GA, AR, CO, TN, MS, IN,
   CA, NY, PA) are currently stopped behind auth walls / API keys / JS-only

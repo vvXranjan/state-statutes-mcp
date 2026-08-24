@@ -99,6 +99,7 @@ class TestServerToolsExposed:
             "WA",
             "WI",
             "WV",
+            "WY",
         ]
 
 

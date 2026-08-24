@@ -12,13 +12,14 @@ Research performed Aug 15, 2026. Findings labeled:
 - **STOPPED** — source unusable without auth/API key/JS execution/browser
   instrumentation.
 
-34 adapters are already implemented (WA, TX, IL, VA, DE, FL, SD, ME, MO,
-VT, WV, MN, AZ, KS, ND, MD, SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH,
-CT, OR, NC, KY, IA, NM, OK), plus Alabama (the 35th, a GraphQL/JSON-POST
-family-L adapter added after this matrix's research was written). This
-matrix classifies the remaining 15 states. Each row records the adapter
-family the state would map to (A–L), its reachability, and its batch
-recommendation.
+34 adapters were implemented at the time this matrix's research was
+written (WA, TX, IL, VA, DE, FL, SD, ME, MO, VT, WV, MN, AZ, KS, ND, MD,
+SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH, CT, OR, NC, KY, IA, NM, OK),
+plus Alabama (the 35th, a GraphQL/JSON-POST family-L adapter) and Wyoming
+(the 36th, a per-title-PDF family-I adapter), both added after the matrix's
+research was written. This matrix now classifies the remaining 14 states.
+Each row records the adapter family the state would map to (A–L), its
+reachability, and its batch recommendation.
 
 Family legend (from research):
 
@@ -39,7 +40,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (34)
+## Implemented (36)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -78,10 +79,11 @@ Family legend (from research):
 | New Mexico | NM | `new_mexico` | I (chapter-level PDF) | VERIFIED live |
 | Oklahoma | OK | `oklahoma` | I (per-title PDF, flat/chaptered) | VERIFIED live |
 | Alabama | AL | `alabama` | L (GraphQL/JSON POST, embedded HTML) | VERIFIED live |
+| Wyoming | WY | `wyoming` | I (per-title PDF, `title{NN:02d}.pdf`) | VERIFIED live |
 
 ---
 
-## Remaining 15 States
+## Remaining 14 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented except Michigan (still remaining, in Group
@@ -136,7 +138,6 @@ PDF-family states remain.
 |-------|-----------------|--------------|-------|--------|------------|------------|-------|
 | **Alaska** | `akleg.gov/basis/statutes.asp` | **BLOCKED** live (403); title list VERIFIED via Wayback 20260813221705 | Titles are JS-driven (Basis Infobase); no static per-section URL observed | J (JS) / H | LOW | HIGH | defer |
 | **Utah** | `le.utah.gov/xcode/…`; `glen.le.utah.gov/code/{cite}/` | **BLOCKED** live (000) | Official XML API requires a developer token; xcode chapter content JS-loaded | J (token) / D | LOW | MEDIUM | defer or keyed |
-| **Wyoming** | `wyoleg.gov/stateStatutes/StateStatutes`; `NXT/gateway.dll/…`; `statutes/compress/title{n}.pdf` | **VERIFIED live** (200) JS shell + per-title PDFs | JS SPA + Folio gateway; per-title PDFs reachable | J / I | LOW | HIGH | defer |
 | **New Jersey** | `pub.njleg.state.nj.us/Statutes/` | **BLOCKED** (000) | LIS is a Folio database — search-based, no persistent URLs; `STATUTES-TEXT.zip` download offered | H | LOW | HIGH | defer (zip) |
 | **Louisiana** | `legis.la.gov/legis/LawSearch.aspx` | **BLOCKED** live (000); search page VERIFIED via Wayback 20260811192827 | Folder-based ASP.NET WebForms postback navigation | F | LOW | HIGH | defer |
 

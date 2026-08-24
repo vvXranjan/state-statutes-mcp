@@ -53,6 +53,7 @@ from state_statutes_mcp.adapters.virginia.adapter import VirginiaAdapter
 from state_statutes_mcp.adapters.washington.adapter import WashingtonAdapter
 from state_statutes_mcp.adapters.west_virginia.adapter import WestVirginiaAdapter
 from state_statutes_mcp.adapters.wisconsin.adapter import WisconsinAdapter
+from state_statutes_mcp.adapters.wyoming.adapter import WyomingAdapter
 from state_statutes_mcp.core.registry import AdapterRegistry
 from state_statutes_mcp import server_tools
 
@@ -106,6 +107,7 @@ def build_registry() -> AdapterRegistry:
     registry.register(VermontAdapter())
     registry.register(WestVirginiaAdapter())
     registry.register(WisconsinAdapter())
+    registry.register(WyomingAdapter())
     return registry
 
 
