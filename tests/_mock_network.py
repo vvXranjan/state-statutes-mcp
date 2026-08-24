@@ -13,6 +13,8 @@ The rule this module exists to enforce: tests must mock
 from __future__ import annotations
 
 import io
+import json
+import urllib.request
 from contextlib import contextmanager
 from unittest import mock
 
@@ -95,6 +97,43 @@ def mock_urlopen_error(error: Exception):
     """
     def fake_urlopen(url, timeout=None):
         raise error
+
+    with mock.patch(PATCH_TARGET, side_effect=fake_urlopen):
+        yield
+
+
+@contextmanager
+def mock_urlopen_graphql(query_to_json: dict[str, dict]):
+    """Serve GraphQL POST responses by dispatching on the query string.
+
+    The Alabama adapter (and the shared ``fetch_graphql`` helper) sends the
+    GraphQL query as a ``urllib.request.Request`` whose JSON body carries the
+    ``query`` field. This mock reads that request body and serves the JSON
+    response registered for the query — keyed on a distinctive substring of
+    the query (e.g. ``"codeOfAlabamaTitles"`` or ``"codeId: { eq: 14515 }"``).
+    It fails on any request whose query matches no registered key, and on any
+    non-POST request.
+
+    Args:
+        query_to_json: Mapping of distinctive query substring to the JSON
+            response object to serve for it. Longer/more specific keys are
+            matched first.
+    """
+    keys = sorted(query_to_json, key=len, reverse=True)
+
+    def fake_urlopen(url, timeout=None):
+        if isinstance(url, urllib.request.Request):
+            body = url.data or b""
+            try:
+                query = json.loads(body.decode("utf-8")).get("query", "")
+            except (ValueError, UnicodeDecodeError):
+                query = ""
+            for key in keys:
+                if key in query:
+                    payload = json.dumps(query_to_json[key]).encode("utf-8")
+                    return _FakeResponse(payload)
+            raise AssertionError(f"Unexpected GraphQL query fetched: {query[:120]!r}")
+        raise AssertionError(f"Unexpected non-POST urlopen call: {url!r}")
 
     with mock.patch(PATCH_TARGET, side_effect=fake_urlopen):
         yield

@@ -5,27 +5,28 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**34 / 50 states implemented** on the `feature/framework` branch.
+**35 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
-| AZ | Arizona | MN | Minnesota |
-| CT | Connecticut | MO | Missouri |
-| DE | Delaware | MT | Montana |
-| FL | Florida | NC | North Carolina |
-| HI | Hawaii | ND | North Dakota |
-| IA | Iowa | NE | Nebraska |
-| ID | Idaho | NH | New Hampshire |
-| IL | Illinois | NM | New Mexico |
-| KS | Kansas | NV | Nevada |
-| KY | Kentucky | OH | Ohio |
-| MA | Massachusetts | OK | Oklahoma |
-| MD | Maryland | OR | Oregon |
-| ME | Maine | RI | Rhode Island |
-| SD | South Dakota | SC | South Carolina |
-| TX | Texas | VA | Virginia |
-| WA | Washington | VT | Vermont |
-| WV | West Virginia | WI | Wisconsin |
+| AL | Alabama | MN | Minnesota |
+| AZ | Arizona | MO | Missouri |
+| CT | Connecticut | MT | Montana |
+| DE | Delaware | NC | North Carolina |
+| FL | Florida | ND | North Dakota |
+| HI | Hawaii | NE | Nebraska |
+| IA | Iowa | NH | New Hampshire |
+| ID | Idaho | NM | New Mexico |
+| IL | Illinois | NV | Nevada |
+| KS | Kansas | OH | Ohio |
+| KY | Kentucky | OK | Oklahoma |
+| MA | Massachusetts | OR | Oregon |
+| MD | Maryland | RI | Rhode Island |
+| ME | Maine | SD | South Dakota |
+| SC | South Carolina | TX | Texas |
+| VA | Virginia | VT | Vermont |
+| WA | Washington | WI | Wisconsin |
+| WV | West Virginia | | |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -51,8 +52,8 @@ adapters/base.py — BaseStateAdapter (build_url, list_titles, list_chapters,
 per-state adapter → official state source → parse → normalize → StatuteSection
 ```
 
-Shared helpers: `adapters/_fetch.py` (network, text + raw bytes),
-`adapters/_htmltext.py` (tag stripping), `adapters/_pdftext.py` (PDF text
+Shared helpers: `adapters/_fetch.py` (network, text + raw bytes + GraphQL
+POST), `adapters/_htmltext.py` (tag stripping), `adapters/_pdftext.py` (PDF text
 extraction). Models: `TitleRef → ChapterRef → SectionRef` refs,
 `TocNode`, `StatuteSection`, `Citation`. Errors: framework exception
 hierarchy rooted at `StateStatutesError`.
@@ -94,10 +95,12 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- 16 states remain. Kentucky, Iowa, New Mexico, and Oklahoma are implemented
+- 15 states remain. Kentucky, Iowa, New Mexico, and Oklahoma are implemented
   (the PDF-family adapters, using the shared binary-fetch + PDF-extraction
-  infrastructure). The next realistic candidate is Michigan (pending
-  re-verification of its host). Ten states (GA, AR, CO, TN, MS, IN, AL, CA,
-  NY, PA) are currently stopped behind auth walls / API keys / JS-only
+  infrastructure); Alabama is implemented as the framework's first
+  GraphQL/JSON-POST adapter (the official ALISON Code API). The next
+  realistic candidates are Colorado (pending its invalid-title gate) and
+  New York (pending API-key access). Nine states (GA, AR, CO, TN, MS, IN,
+  CA, NY, PA) are currently stopped behind auth walls / API keys / JS-only
   interfaces.
 - See `docs/research/` for planning notes.

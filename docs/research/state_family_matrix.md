@@ -14,9 +14,11 @@ Research performed Aug 15, 2026. Findings labeled:
 
 34 adapters are already implemented (WA, TX, IL, VA, DE, FL, SD, ME, MO,
 VT, WV, MN, AZ, KS, ND, MD, SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH,
-CT, OR, NC, KY, IA, NM, OK). This matrix classifies the remaining 16
-states. Each row records the adapter family the state would map to (A–K),
-its reachability, and its batch recommendation.
+CT, OR, NC, KY, IA, NM, OK), plus Alabama (the 35th, a GraphQL/JSON-POST
+family-L adapter added after this matrix's research was written). This
+matrix classifies the remaining 15 states. Each row records the adapter
+family the state would map to (A–L), its reachability, and its batch
+recommendation.
 
 Family legend (from research):
 
@@ -32,6 +34,8 @@ Family legend (from research):
 - **I** — bulk or per-section PDF/RTF documents.
 - **J** — JS SPA; content only via client-side rendering or keyed API.
 - **K** — infeasible / framework-mismatched (hierarchy or access).
+- **L** — GraphQL/JSON POST API returning structured records with embedded
+  HTML (Alabama-style).
 
 ---
 
@@ -73,6 +77,7 @@ Family legend (from research):
 | Iowa | IA | `iowa` | I (per-section PDF, versioned year) | VERIFIED live |
 | New Mexico | NM | `new_mexico` | I (chapter-level PDF) | VERIFIED live |
 | Oklahoma | OK | `oklahoma` | I (per-title PDF, flat/chaptered) | VERIFIED live |
+| Alabama | AL | `alabama` | L (GraphQL/JSON POST, embedded HTML) | VERIFIED live |
 
 ---
 
@@ -145,7 +150,6 @@ PDF-family states remain.
 | **Tennessee** | Lexis via `tncourts.gov` | Lexis auth wall | G | HIGH |
 | **Mississippi** | Lexis-published via `sos.ms.gov` | Lexis auth wall | G | HIGH |
 | **Indiana** | `iga.in.gov` | React SPA (empty shell); `api.iga.in.gov` 403 "Invalid API key" | J (key) | HIGH |
-| **Alabama** | `alison.legislature.state.al.us/graphql` | Next.js SPA; GraphQL introspection disabled | J | HIGH |
 | **California** | `leginfo.legislature.ca.gov/codes_displayText.xhtml` | JSF form postback; section text only via Ajax partial render | F | HIGH |
 | **New York** | `legislation.nysenate.gov/api/3/` | 403/000; documented REST API requires free API key | D (key) | MEDIUM |
 | **Pennsylvania** | `palegis.us/statutes/consolidated/view-statute` | 000/302; legacy `consCheck.cfm` form-based (Wayback has no content captures) | F/J | HIGH |

@@ -1,0 +1,1 @@
+"""Alabama adapter package."""

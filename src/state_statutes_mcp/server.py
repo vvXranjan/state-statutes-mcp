@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from mcp.server.mcpserver import MCPServer
 
+from state_statutes_mcp.adapters.alabama.adapter import AlabamaAdapter
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
@@ -70,6 +71,7 @@ def build_registry() -> AdapterRegistry:
     here, rather than discovered, so the supported set is always obvious.
     """
     registry = AdapterRegistry()
+    registry.register(AlabamaAdapter())
     registry.register(WashingtonAdapter())
     registry.register(TexasAdapter())
     registry.register(IllinoisAdapter())

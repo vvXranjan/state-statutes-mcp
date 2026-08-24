@@ -26,10 +26,12 @@ from _mock_network import (
     PATCH_TARGET,
     mock_urlopen,
     mock_urlopen_error,
+    mock_urlopen_graphql,
     mock_urlopen_serving,
     mock_urlopen_serving_bytes,
 )
 
+from state_statutes_mcp.adapters.alabama.adapter import AlabamaAdapter
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
@@ -204,6 +206,7 @@ def _serve_bytes(url_to_bytes: dict[str, bytes]):
 def _registry() -> AdapterRegistry:
     """Build the same registry the real server would use."""
     registry = AdapterRegistry()
+    registry.register(AlabamaAdapter())
     registry.register(WashingtonAdapter())
     registry.register(TexasAdapter())
     registry.register(IllinoisAdapter())
@@ -246,6 +249,7 @@ class TestListStates:
         result = list_states(_registry())
 
         assert result == [
+            {"state_code": "AL", "state_name": "Alabama"},
             {"state_code": "AZ", "state_name": "Arizona"},
             {"state_code": "CT", "state_name": "Connecticut"},
             {"state_code": "DE", "state_name": "Delaware"},
@@ -1045,6 +1049,43 @@ class TestGetSectionOklahoma:
         assert result["source_url"] == (
             "https://www.oklegislature.gov/OK_Statutes/"
             "CompleteTitles/os21.pdf"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionAlabama:
+    def test_returns_normalized_alabama_section(self) -> None:
+        # The real fixtures: verbatim captures of the official ALISON
+        # GraphQL API (alison.legislature.state.al.us/graphql) captured live
+        # Aug 24 2026 (see docs/research/alabama.md). Alabama section
+        # retrieval first loads the TOC (codeOfAlabamaTitles) to resolve the
+        # citation to its codeId, then POSTs a codesOfAlabama retrieval
+        # query. The GraphQL mock dispatches on the query body.
+        fixtures = Path(__file__).parent / "fixtures"
+        toc = json.loads(
+            (fixtures / "al_toc_trimmed.json").read_text(encoding="utf-8")
+        )
+        s1 = json.loads(
+            (fixtures / "al_section_1-1-1.json").read_text(encoding="utf-8")
+        )
+        mapping = {
+            "codeOfAlabamaTitles": toc,
+            "codeId: { eq: 14515 }": s1,
+        }
+        with mock_urlopen_graphql(mapping):
+            result = get_section(_registry(), "AL", "1", "1", "1-1-1")
+
+        assert result["state"] == "AL"
+        assert result["section"] == "1-1-1"
+        assert result["citation"] == "Ala. Code § 1-1-1"
+        assert result["heading"] == "Meaning of Certain Words and Terms."
+        assert "The following words, whenever they appear in this code" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is None
+        assert result["source_url"] == (
+            "https://alison.legislature.state.al.us/graphql"
         )
         assert result["retrieved_at"] is not None
 
