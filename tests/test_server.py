@@ -66,6 +66,7 @@ class TestServerToolsExposed:
         assert [s["state_code"] for s in states] == [
             "AL",
             "AZ",
+            "CO",
             "CT",
             "DE",
             "FL",

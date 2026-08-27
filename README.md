@@ -5,28 +5,29 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**36 / 50 states implemented** on the `feature/framework` branch.
+**37 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
 | AL | Alabama | MN | Minnesota |
 | AZ | Arizona | MO | Missouri |
-| CT | Connecticut | MT | Montana |
-| DE | Delaware | NC | North Carolina |
-| FL | Florida | ND | North Dakota |
-| HI | Hawaii | NE | Nebraska |
-| IA | Iowa | NH | New Hampshire |
-| ID | Idaho | NM | New Mexico |
-| IL | Illinois | NV | Nevada |
-| KS | Kansas | OH | Ohio |
-| KY | Kentucky | OK | Oklahoma |
-| MA | Massachusetts | OR | Oregon |
-| MD | Maryland | RI | Rhode Island |
-| ME | Maine | SD | South Dakota |
-| SC | South Carolina | TX | Texas |
-| VA | Virginia | VT | Vermont |
-| WA | Washington | WI | Wisconsin |
-| WV | West Virginia | WY | Wyoming |
+| CO | Colorado | MT | Montana |
+| CT | Connecticut | NC | North Carolina |
+| DE | Delaware | ND | North Dakota |
+| FL | Florida | NE | Nebraska |
+| HI | Hawaii | NH | New Hampshire |
+| IA | Iowa | NM | New Mexico |
+| ID | Idaho | NV | Nevada |
+| IL | Illinois | OH | Ohio |
+| KS | Kansas | OK | Oklahoma |
+| KY | Kentucky | OR | Oregon |
+| MA | Massachusetts | RI | Rhode Island |
+| MD | Maryland | SD | South Dakota |
+| ME | Maine | TX | Texas |
+| SC | South Carolina | VA | Virginia |
+| VT | Vermont | WA | Washington |
+| WI | Wisconsin | WV | West Virginia |
+| WY | Wyoming | | |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -95,14 +96,13 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- **14 states remain**: AK, AR, CA, CO, GA, IN, LA, MI, MS, NJ, NY, PA, TN, UT.
+- **13 states remain**: AK, AR, CA, GA, IN, LA, MI, MS, NJ, NY, PA, TN, UT.
 - **Implemented adapter families**: Kentucky, Iowa, New Mexico, Oklahoma,
-  and Wyoming are the PDF-family adapters (shared binary-fetch +
+  Wyoming, and Colorado are the PDF-family adapters (shared binary-fetch +
   PDF-extraction infrastructure); Alabama is the framework's first
   GraphQL/JSON-POST adapter (the official ALISON Code API).
-- **Closest to READY**: Colorado (per-title PDFs; architecture fully
-  verified, awaiting closure of the invalid-title HTTP gate) and Alaska
-  (deterministic per-section URL pattern; awaiting live access).
+- **Closest to READY**: Alaska (deterministic per-section URL pattern;
+  awaiting live access).
 - **Blocked from this environment**: Arkansas, Utah, and New York
   (TCP/TLS unreachable or API-key gated); California, Pennsylvania,
   Indiana, Louisiana, and Tennessee (robots-blocked, JS-only, or

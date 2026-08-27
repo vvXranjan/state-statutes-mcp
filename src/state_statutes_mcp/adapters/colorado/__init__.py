@@ -1,0 +1,1 @@
+"""Colorado adapter package."""

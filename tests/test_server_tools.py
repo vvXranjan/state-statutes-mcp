@@ -33,6 +33,7 @@ from _mock_network import (
 
 from state_statutes_mcp.adapters.alabama.adapter import AlabamaAdapter
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
+from state_statutes_mcp.adapters.colorado.adapter import ColoradoAdapter
 from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
 from state_statutes_mcp.adapters.florida.adapter import FloridaAdapter
@@ -215,6 +216,7 @@ def _registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
+    registry.register(ColoradoAdapter())
     registry.register(ConnecticutAdapter())
     registry.register(HawaiiAdapter())
     registry.register(IdahoAdapter())
@@ -253,6 +255,7 @@ class TestListStates:
         assert result == [
             {"state_code": "AL", "state_name": "Alabama"},
             {"state_code": "AZ", "state_name": "Arizona"},
+            {"state_code": "CO", "state_name": "Colorado"},
             {"state_code": "CT", "state_name": "Connecticut"},
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
@@ -1155,6 +1158,75 @@ class TestGetSectionWyoming:
         assert result["amendment_notes"] is None
         assert result["source_url"] == (
             "https://wyoleg.gov/statutes/compress/title01.pdf"
+        )
+        assert result["retrieved_at"] is not None
+
+
+class TestGetSectionColorado:
+    def test_returns_normalized_colorado_section(self) -> None:
+        # The real archived fixtures: page-range subsets of the official
+        # per-title PDFs captured via the Wayback Machine (the live host
+        # returns an AWS WAF 403 to this environment). See
+        # docs/research/colorado.md. Colorado section retrieval fetches the
+        # per-title PDF (crs2024-title-42.pdf) and locates the requested
+        # section in its body. The network mock dispatches on HEAD
+        # (existence probe) vs GET (PDF fetch).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://content.leg.colorado.gov/sites/default/files/images/"
+            "olls/crs2024-title-42.pdf": (
+                fixtures / "co_title42_ch1.pdf"
+            ).read_bytes(),
+        }
+
+        import io
+        import urllib.request
+        from unittest import mock
+
+        from _mock_network import PATCH_TARGET
+
+        class _Resp(io.BytesIO):
+            def __init__(self, data: bytes, content_type: str):
+                super().__init__(data)
+                self.status = 200
+                self.headers = {"Content-Type": content_type}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc_info):
+                return False
+
+        def fake_urlopen(request, timeout=None):
+            if isinstance(request, urllib.request.Request):
+                url = request.full_url
+                method = request.get_method()
+            else:
+                url = request
+                method = "GET"
+            if method == "HEAD":
+                if url in served:
+                    return _Resp(b"", "application/pdf")
+                return _Resp(b"", "text/html")
+            if url in served:
+                return _Resp(served[url], "application/pdf")
+            return _Resp(b"<html></html>", "text/html")
+
+        with mock.patch(PATCH_TARGET, side_effect=fake_urlopen):
+            result = get_section(_registry(), "CO", "42", "1", "42-1-101")
+
+        assert result["state"] == "CO"
+        assert result["section"] == "42-1-101"
+        assert result["citation"] == "Colo. Rev. Stat. 42-1-101"
+        assert result["heading"] == "Short title."
+        assert "Articles 1 to 4 of this title shall be known" in (
+            result["text"]
+        )
+        assert result["status"] == "unknown"
+        assert result["amendment_notes"] is not None
+        assert result["source_url"] == (
+            "https://content.leg.colorado.gov/sites/default/files/images/"
+            "olls/crs2024-title-42.pdf"
         )
         assert result["retrieved_at"] is not None
 

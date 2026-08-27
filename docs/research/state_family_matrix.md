@@ -15,11 +15,12 @@ Research performed Aug 15, 2026. Findings labeled:
 34 adapters were implemented at the time this matrix's research was
 written (WA, TX, IL, VA, DE, FL, SD, ME, MO, VT, WV, MN, AZ, KS, ND, MD,
 SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH, CT, OR, NC, KY, IA, NM, OK),
-plus Alabama (the 35th, a GraphQL/JSON-POST family-L adapter) and Wyoming
-(the 36th, a per-title-PDF family-I adapter), both added after the matrix's
-research was written. This matrix now classifies the remaining 14 states.
-Each row records the adapter family the state would map to (A–L), its
-reachability, and its batch recommendation.
+plus Alabama (the 35th, a GraphQL/JSON-POST family-L adapter), Wyoming
+(the 36th, a per-title-PDF family-I adapter), and Colorado (the 37th, a
+per-title-PDF family-I adapter using archived official fixtures), all added
+after the matrix's research was written. This matrix now classifies the
+remaining 13 states. Each row records the adapter family the state would
+map to (A–L), its reachability, and its batch recommendation.
 
 Family legend (from research):
 
@@ -40,7 +41,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (36)
+## Implemented (37)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -80,10 +81,11 @@ Family legend (from research):
 | Oklahoma | OK | `oklahoma` | I (per-title PDF, flat/chaptered) | VERIFIED live |
 | Alabama | AL | `alabama` | L (GraphQL/JSON POST, embedded HTML) | VERIFIED live |
 | Wyoming | WY | `wyoming` | I (per-title PDF, `title{NN:02d}.pdf`) | VERIFIED live |
+| Colorado | CO | `colorado` | I (per-title PDF, archived official fixtures) | VERIFIED fixtures |
 
 ---
 
-## Remaining 14 States
+## Remaining 13 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented except Michigan (still remaining, in Group
@@ -147,7 +149,6 @@ PDF-family states remain.
 |-------|-----------------|--------|--------|------------|
 | **Georgia** | `legis.ga.gov/api/` | 401 auth; official code via LexisNexis | G | HIGH |
 | **Arkansas** | `advance.lexis.com` | Lexis auth wall | G | HIGH |
-| **Colorado** | Lexis-hosted via `content.leg.colorado.gov` | Lexis auth wall | G | HIGH |
 | **Tennessee** | Lexis via `tncourts.gov` | Lexis auth wall | G | HIGH |
 | **Mississippi** | Lexis-published via `sos.ms.gov` | Lexis auth wall | G | HIGH |
 | **Indiana** | `iga.in.gov` | React SPA (empty shell); `api.iga.in.gov` 403 "Invalid API key" | J (key) | HIGH |
