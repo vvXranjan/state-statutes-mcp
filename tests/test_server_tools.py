@@ -47,6 +47,7 @@ from state_statutes_mcp.adapters.kentucky.adapter import KentuckyAdapter
 from state_statutes_mcp.adapters.maine.adapter import MaineAdapter
 from state_statutes_mcp.adapters.maryland.adapter import MarylandAdapter
 from state_statutes_mcp.adapters.massachusetts.adapter import MassachusettsAdapter
+from state_statutes_mcp.adapters.michigan.adapter import MichiganAdapter
 from state_statutes_mcp.adapters.minnesota.adapter import MinnesotaAdapter
 from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.montana.adapter import MontanaAdapter
@@ -228,6 +229,7 @@ def _registry() -> AdapterRegistry:
     registry.register(MaineAdapter())
     registry.register(MarylandAdapter())
     registry.register(MassachusettsAdapter())
+    registry.register(MichiganAdapter())
     registry.register(MinnesotaAdapter())
     registry.register(MissouriAdapter())
     registry.register(MontanaAdapter())
@@ -271,6 +273,7 @@ class TestListStates:
             {"state_code": "MA", "state_name": "Massachusetts"},
             {"state_code": "MD", "state_name": "Maryland"},
             {"state_code": "ME", "state_name": "Maine"},
+            {"state_code": "MI", "state_name": "Michigan"},
             {"state_code": "MN", "state_name": "Minnesota"},
             {"state_code": "MO", "state_name": "Missouri"},
             {"state_code": "MT", "state_name": "Montana"},
@@ -1639,3 +1642,49 @@ class TestGetSectionCalifornia:
         with mock_urlopen_serving(served):
             with pytest.raises(RefNotFoundError):
                 get_section(_registry(), "CA", "BPC", "3//1/1", "999999")
+
+
+class TestGetSectionMichigan:
+    def test_returns_normalized_michigan_section(self) -> None:
+        # The real fixture: a verbatim archived official capture of the
+        # legislature.mi.gov section page (retrieved via the Wayback
+        # Machine, Aug 2026; the live host is bot-challenge-blocked from
+        # this environment). Michigan section retrieval is a single direct
+        # server-rendered GET.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legislature.mi.gov/Laws/MCL"
+            "?objectName=mcl-750-82": (
+                fixtures / "mi_section_750_82.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "MI", "MCL", "750", "750.82")
+
+        assert result["state"] == "MI"
+        assert result["section"] == "750.82"
+        assert result["citation"] == "MCL § 750.82"
+        assert result["heading"].startswith(
+            "Felonious assault; violation of subsection (1)"
+        )
+        assert result["text"].startswith("(1) Except as otherwise provided")
+        assert result["status"] == "unknown"
+        assert "1931, Act 328" in result["amendment_notes"]
+        assert result["source_url"] == (
+            "https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-750-82"
+        )
+        assert result["retrieved_at"] is not None
+
+    def test_invalid_section_raises(self) -> None:
+        from state_statutes_mcp.core.exceptions import RefNotFoundError
+
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legislature.mi.gov/Laws/MCL"
+            "?objectName=mcl-999-999": (
+                fixtures / "mi_section_invalid.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            with pytest.raises(RefNotFoundError):
+                get_section(_registry(), "MI", "MCL", "999", "999.999")

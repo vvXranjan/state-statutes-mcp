@@ -5,7 +5,7 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**38 / 50 states implemented** on the `feature/framework` branch.
+**39 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
@@ -25,9 +25,10 @@ from the official state sources via state-specific adapters.
 | MA | Massachusetts | SD | South Dakota |
 | MD | Maryland | TX | Texas |
 | ME | Maine | VA | Virginia |
-| SC | South Carolina | WA | Washington |
-| VT | Vermont | WI | Wisconsin |
-| WV | West Virginia | WY | Wyoming |
+| MI | Michigan | WA | Washington |
+| SC | South Carolina | WI | Wisconsin |
+| VT | Vermont | WV | West Virginia |
+| WY | Wyoming | | |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -96,18 +97,19 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- **12 states remain**: AK, AR, GA, IN, LA, MI, MS, NJ, NY, PA, TN, UT.
+- **11 states remain**: AK, AR, GA, IN, LA, MS, NJ, NY, PA, TN, UT.
 - **Implemented adapter families**: Kentucky, Iowa, New Mexico, Oklahoma,
   Wyoming, and Colorado are the PDF-family adapters (shared binary-fetch +
   PDF-extraction infrastructure); Alabama is the framework's first
   GraphQL/JSON-POST adapter (the official ALISON Code API); California is
   the framework's first fully server-rendered-HTML adapter (leginfo
-  per-section pages, no JS or bulk archive).
+  per-section pages, no JS or bulk archive); Michigan is the framework's
+  first archived-official-fixture HTML adapter with a synthetic title
+  (legislature.mi.gov, verified through Wayback captures).
 - **Closest to READY**: Alaska (deterministic per-section URL pattern;
   awaiting live access).
 - **Blocked from this environment**: Arkansas, Utah, and New York
   (TCP/TLS unreachable or API-key gated); Pennsylvania, Indiana,
   Louisiana, and Tennessee (robots-blocked, JS-only, or LexisNexis-
-  hosted); Mississippi and New Jersey (Lexis/Folio walls); Michigan
-  (stopped).
+  hosted); Mississippi and New Jersey (Lexis/Folio walls).
 - See `docs/research/` for planning notes.

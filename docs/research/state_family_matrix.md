@@ -17,11 +17,13 @@ written (WA, TX, IL, VA, DE, FL, SD, ME, MO, VT, WV, MN, AZ, KS, ND, MD,
 SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH, CT, OR, NC, KY, IA, NM, OK),
 plus Alabama (the 35th, a GraphQL/JSON-POST family-L adapter), Wyoming
 (the 36th, a per-title-PDF family-I adapter), Colorado (the 37th, a
-per-title-PDF family-I adapter using archived official fixtures), and
-California (the 38th, a server-rendered-HTML family-M adapter), all added
-after the matrix's research was written. This matrix now classifies the
-remaining 12 states. Each row records the adapter family the state would
-map to (A–M), its reachability, and its batch recommendation.
+per-title-PDF family-I adapter using archived official fixtures),
+California (the 38th, a server-rendered-HTML family-M adapter), and
+Michigan (the 39th, an archived-official-fixture HTML adapter with a
+synthetic title, family M), all added after the matrix's research was
+written. This matrix now classifies the remaining 11 states. Each row
+records the adapter family the state would map to (A–M), its reachability,
+and its batch recommendation.
 
 Family legend (from research):
 
@@ -45,7 +47,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (37)
+## Implemented (39)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -87,15 +89,16 @@ Family legend (from research):
 | Wyoming | WY | `wyoming` | I (per-title PDF, `title{NN:02d}.pdf`) | VERIFIED live |
 | Colorado | CO | `colorado` | I (per-title PDF, archived official fixtures) | VERIFIED fixtures |
 | California | CA | `california` | M (server-rendered HTML per-section, folded 4-level hierarchy) | VERIFIED live |
+| Michigan | MI | `michigan` | M (archived-fixture HTML, synthetic title, Act/Division walk) | VERIFIED fixtures |
 
 ---
 
-## Remaining 12 States
+## Remaining 11 States
 
 Groups 1-3 below originally described candidate families. All states in
-Groups 1-3 are now implemented except Michigan (still remaining, in Group
-1); see the Implemented table above. Only Groups 5 and 6 hold
-un-implemented states other than Michigan and Utah (Group 5).
+Groups 1-3 are now implemented (including Michigan); see the Implemented
+table above. Only Groups 5 and 6 hold un-implemented states other than
+Utah (Group 5).
 
 ### Group 1 — One file per section (Family A)
 
@@ -110,7 +113,6 @@ URL, server-rendered HTML, no JS).
 | **Rhode Island** | `webserver.rilegislature.gov/Statutes/TITLE{nn}/{nn}-{c}/{nn}-{c}-{s}.htm` | **VERIFIED** (Wayback 20250401074949) | Title/chapter dirs | One file per section (5.9 KB, `R.I. Gen. Laws § 43-3-2`) | Title → Chapter → Section | `R.I. Gen. Laws § {t}-{c}-{s}` | Current-code | (live host 000) | A | MEDIUM | LOW | **OH + RI** |
 | **Massachusetts** | `malegislature.gov/Laws/GeneralLaws/Part{}/Title{}/Chapter{n}/Section{n}` | **VERIFIED** (Wayback 20260705180333) | Part→Title→Chapter→Section hierarchical | One file per section (77 KB) | Part → Title → Chapter → Section (4 levels) | `M.G.L. c. {n}, § {s}` | Current-code | 404 | A | HIGH | MEDIUM (4-level flattening) | **MA + NE** |
 | **Nebraska** | `nebraskalegislature.gov/laws/statutes.php?statute={sec}` | **VERIFIED** (Wayback 20251215062931) | Title→chapter index | One file per section (`Neb. Rev. Stat. 77-1801`, 30 KB) | Chapter → Section | `Neb. Rev. Stat. § {ch}-{sec}` | Current-code | 404 | A | MEDIUM | LOW | **MA + NE** |
-| **Michigan** | `legislature.mi.gov/Home/GetObject?objectName=mcl-{ch}-{sec}` | **VERIFIED** (Wayback 20250421214234) | ChapterIndex (`mcl-chap{n}`) | One file per section (`MCL - Section 28.2`, 22 KB) | Chapter → Section | `MCL § {ch}.{sec}` | Versioned ("Complete Through PA …") | 404 | A | HIGH | LOW | **MI + UT** |
 | **Hawaii** | `capitol.hawaii.gov/hrscurrent/Vol{nn}_Ch{n}-{n}/HRS{n}/HRS_{n}-{n}.htm` | **PARTIAL** (volume dir VERIFIED via Wayback 20251010215648; section page Cloudflare-blocked) | Static volume→chapter directory | One file per section (structure INFERENCE from dir + filename pattern) | Title (volume) → Chapter → Section | `Haw. Rev. Stat. § {ch}-{sec}` | Current-code | (Cloudflare) | A/C | LOW (Cloudflare) | MEDIUM | **HI + CT** |
 
 ### Group 2 — Chapter-document HTML (Family B)
@@ -270,14 +272,12 @@ Summary for the next session (implementing batch B4 onward):
   Alabama added since this handoff), 1132 passing tests with 1 documented
   pre-existing Illinois real-fixture skip, and commit 7746681 (Alabama) is
   not yet pushed.
-- **Research phase complete**; matrix lives in this file. The next
-  realistic candidate is **Oklahoma** (per-title bulk PDFs, Family I;
-  hierarchy is heterogeneous — flat Title→Section for most titles and
-  Title→Chapter→Section for a minority), then **Michigan** (pending
-  re-verification of its host). Reference adapters: Washington (A family),
-  Delaware/South Carolina (B family), Kentucky/Iowa/New Mexico (I family),
-  and the MO/VT/WV fixture pattern for any batch whose live host is
-  blocked.
+- **Research phase complete**; matrix lives in this file. Oklahoma
+  (per-title bulk PDFs, Family I) and Michigan (archived-fixture HTML,
+  synthetic title) are now IMPLEMENTED. Reference adapters: Washington (A
+  family), Delaware/South Carolina (B family), Kentucky/Iowa/New Mexico (I
+  family), and the MO/VT/WV fixture pattern for any batch whose live host
+  is blocked.
 - **Do not** implement adapters for STOPPED states or propose framework
   changes; the mandate forbids both.
 - Verify each URL live before coding; label findings VERIFIED/UNVERIFIED/

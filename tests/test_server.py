@@ -80,6 +80,7 @@ class TestServerToolsExposed:
             "MA",
             "MD",
             "ME",
+            "MI",
             "MN",
             "MO",
             "MT",

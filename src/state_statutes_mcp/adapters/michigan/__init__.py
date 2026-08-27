@@ -1,0 +1,1 @@
+"""Michigan adapter package."""
