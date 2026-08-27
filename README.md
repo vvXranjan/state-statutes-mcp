@@ -95,12 +95,17 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- 14 states remain. Kentucky, Iowa, New Mexico, Oklahoma, and Wyoming are
-  implemented (the PDF-family adapters, using the shared binary-fetch +
-  PDF-extraction infrastructure); Alabama is implemented as the framework's
-  first GraphQL/JSON-POST adapter (the official ALISON Code API). The next
-  realistic candidates are Colorado (pending its invalid-title gate) and
-  New York (pending API-key access). Nine states (GA, AR, CO, TN, MS, IN,
-  CA, NY, PA) are currently stopped behind auth walls / API keys / JS-only
-  interfaces.
+- **14 states remain**: AK, AR, CA, CO, GA, IN, LA, MI, MS, NJ, NY, PA, TN, UT.
+- **Implemented adapter families**: Kentucky, Iowa, New Mexico, Oklahoma,
+  and Wyoming are the PDF-family adapters (shared binary-fetch +
+  PDF-extraction infrastructure); Alabama is the framework's first
+  GraphQL/JSON-POST adapter (the official ALISON Code API).
+- **Closest to READY**: Colorado (per-title PDFs; architecture fully
+  verified, awaiting closure of the invalid-title HTTP gate) and Alaska
+  (deterministic per-section URL pattern; awaiting live access).
+- **Blocked from this environment**: Arkansas, Utah, and New York
+  (TCP/TLS unreachable or API-key gated); California, Pennsylvania,
+  Indiana, Louisiana, and Tennessee (robots-blocked, JS-only, or
+  LexisNexis-hosted); Mississippi and New Jersey (Lexis/Folio walls);
+  Michigan (stopped).
 - See `docs/research/` for planning notes.
