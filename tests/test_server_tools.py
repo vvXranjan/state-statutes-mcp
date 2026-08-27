@@ -32,6 +32,7 @@ from _mock_network import (
 )
 
 from state_statutes_mcp.adapters.alabama.adapter import AlabamaAdapter
+from state_statutes_mcp.adapters.alaska.adapter import AlaskaAdapter
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.california.adapter import CaliforniaAdapter
 from state_statutes_mcp.adapters.colorado.adapter import ColoradoAdapter
@@ -211,6 +212,7 @@ def _registry() -> AdapterRegistry:
     """Build the same registry the real server would use."""
     registry = AdapterRegistry()
     registry.register(AlabamaAdapter())
+    registry.register(AlaskaAdapter())
     registry.register(WashingtonAdapter())
     registry.register(TexasAdapter())
     registry.register(IllinoisAdapter())
@@ -257,6 +259,7 @@ class TestListStates:
         result = list_states(_registry())
 
         assert result == [
+            {"state_code": "AK", "state_name": "Alaska"},
             {"state_code": "AL", "state_name": "Alabama"},
             {"state_code": "AZ", "state_name": "Arizona"},
             {"state_code": "CA", "state_name": "California"},
@@ -1688,3 +1691,67 @@ class TestGetSectionMichigan:
         with mock_urlopen_serving(served):
             with pytest.raises(RefNotFoundError):
                 get_section(_registry(), "MI", "MCL", "999", "999.999")
+
+
+class TestGetSectionAlaska:
+    def test_returns_normalized_alaska_section(self) -> None:
+        # The real fixture: a verbatim archived official capture of the
+        # akleg.gov section page (retrieved via the Wayback Machine, Aug
+        # 2026; the live host is bot-challenge-blocked from this
+        # environment). The fixture is served as raw bytes because the
+        # official pages are windows-1252-encoded.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.akleg.gov/basis/statutes.asp"
+            "?media=print&secStart=01.10.070&secEnd=": (
+                fixtures / "ak_section_0110070.html"
+            ).read_bytes(),
+        }
+        with mock_urlopen_serving_bytes(served):
+            result = get_section(_registry(), "AK", "1", "01.10", "01.10.070")
+
+        assert result["state"] == "AK"
+        assert result["section"] == "01.10.070"
+        assert result["citation"] == "AS 01.10.070"
+        assert result["heading"] == "Time statutes become law and take effect."
+        assert result["text"].startswith(
+            "(a) All bills passed by the legislature become law"
+        )
+        assert result["status"] == "unknown"
+        assert result["source_url"] == (
+            "https://www.akleg.gov/basis/statutes.asp"
+            "?media=print&secStart=01.10.070&secEnd="
+        )
+        assert result["retrieved_at"] is not None
+
+    def test_invalid_section_raises(self) -> None:
+        from state_statutes_mcp.core.exceptions import RefNotFoundError
+
+        # A nonexistent citation returns HTTP 404 (archived evidence).
+        from contextlib import contextmanager
+
+        def serve_404(url):
+            from unittest import mock as _mock
+
+            def fake_urlopen(u, timeout=None):
+                tgt = u if isinstance(u, str) else u.full_url
+                if tgt != url:
+                    raise AssertionError(f"Unexpected URL: {tgt!r}")
+                import io as _io
+                import urllib.error as _urlerr
+
+                raise _urlerr.HTTPError(
+                    url, 404, "Not Found", {}, _io.BytesIO(b"")
+                )
+
+            return _mock.patch(
+                "state_statutes_mcp.adapters._fetch.urllib.request.urlopen",
+                side_effect=fake_urlopen,
+            )
+
+        with serve_404(
+            "https://www.akleg.gov/basis/statutes.asp"
+            "?media=print&secStart=99.99.999&secEnd="
+        ):
+            with pytest.raises(RefNotFoundError):
+                get_section(_registry(), "AK", "99", "99.99", "99.99.999")

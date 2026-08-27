@@ -18,12 +18,13 @@ SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH, CT, OR, NC, KY, IA, NM, OK),
 plus Alabama (the 35th, a GraphQL/JSON-POST family-L adapter), Wyoming
 (the 36th, a per-title-PDF family-I adapter), Colorado (the 37th, a
 per-title-PDF family-I adapter using archived official fixtures),
-California (the 38th, a server-rendered-HTML family-M adapter), and
-Michigan (the 39th, an archived-official-fixture HTML adapter with a
-synthetic title, family M), all added after the matrix's research was
-written. This matrix now classifies the remaining 11 states. Each row
-records the adapter family the state would map to (A–M), its reachability,
-and its batch recommendation.
+California (the 38th, a server-rendered-HTML family-M adapter), Michigan
+(the 39th, an archived-official-fixture HTML adapter with a synthetic
+title, family M), and Alaska (the 40th, an archived-official-fixture
+ISO-8859-1 adapter with citation-driven TOC discovery, family M), all
+added after the matrix's research was written. This matrix now classifies
+the remaining 10 states. Each row records the adapter family the state
+would map to (A–M), its reachability, and its batch recommendation.
 
 Family legend (from research):
 
@@ -47,7 +48,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (39)
+## Implemented (40)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -90,10 +91,11 @@ Family legend (from research):
 | Colorado | CO | `colorado` | I (per-title PDF, archived official fixtures) | VERIFIED fixtures |
 | California | CA | `california` | M (server-rendered HTML per-section, folded 4-level hierarchy) | VERIFIED live |
 | Michigan | MI | `michigan` | M (archived-fixture HTML, synthetic title, Act/Division walk) | VERIFIED fixtures |
+| Alaska | AK | `alaska` | M (archived-fixture HTML, citation-driven TOC discovery, ISO-8859-1) | VERIFIED fixtures |
 
 ---
 
-## Remaining 11 States
+## Remaining 10 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented (including Michigan); see the Implemented
@@ -145,7 +147,6 @@ PDF-family states remain.
 
 | State | Official source | Reachability | Notes | Family | Confidence | Difficulty | Batch |
 |-------|-----------------|--------------|-------|--------|------------|------------|-------|
-| **Alaska** | `akleg.gov/basis/statutes.asp` | **BLOCKED** live (403); title list VERIFIED via Wayback 20260813221705 | Titles are JS-driven (Basis Infobase); no static per-section URL observed | J (JS) / H | LOW | HIGH | defer |
 | **Utah** | `le.utah.gov/xcode/…`; `glen.le.utah.gov/code/{cite}/` | **BLOCKED** live (000) | Official XML API requires a developer token; xcode chapter content JS-loaded | J (token) / D | LOW | MEDIUM | defer or keyed |
 | **New Jersey** | `pub.njleg.state.nj.us/Statutes/` | **BLOCKED** (000) | LIS is a Folio database — search-based, no persistent URLs; `STATUTES-TEXT.zip` download offered | H | LOW | HIGH | defer (zip) |
 | **Louisiana** | `legis.la.gov/legis/LawSearch.aspx` | **BLOCKED** live (000); search page VERIFIED via Wayback 20260811192827 | Folder-based ASP.NET WebForms postback navigation | F | LOW | HIGH | defer |
@@ -194,7 +195,7 @@ states); B4 (OH + RI) and B5 (WI + ID) remain.
   - Massachusetts is a **4-level** hierarchy (Part → Title → Chapter →
     Section); flatten Part into the TitleRef identifier or drop Part
     (citation `M.G.L. c. {n}` needs only chapter+section).
-  - Alaska/NJ/UT/WY are Folio/NXT/JS systems with no stable citation
+  - NJ/UT/WY are Folio/NXT/JS systems with no stable citation
     URL — infeasible without browser instrumentation.
 - **PDF family (KY, NM, IA, OK)** introduces text extraction into the
   framework for the first time. KY and IA are per-section/per-chapter
