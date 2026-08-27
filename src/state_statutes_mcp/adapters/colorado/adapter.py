@@ -154,8 +154,15 @@ class ColoradoAdapter(BaseStateAdapter):
     # The editor's note line.
     _EDITORS_NOTE = re.compile(r"^Editor's note:\s*")
 
-    # A repealed section's catchline ends with '(Repealed)'.
-    _REPEALED = re.compile(r"\(Repealed\)\s*$", re.IGNORECASE)
+    # A bare repealed/renumbered note on its own line (e.g. a wrapped
+    # catchline's '(Repealed)' marker on the line following the catchline).
+    _REPEAL_NOTE_LINE = re.compile(
+        r"^\((?:Repealed|Renumbered)\)\s*$", re.IGNORECASE
+    )
+
+    # A repealed/renumbered section's catchline ends with '(Repealed)' or
+    # '(Renumbered)'.
+    _REPEALED = re.compile(r"\((?:Repealed|Renumbered)\)\s*$", re.IGNORECASE)
 
     def __init__(self) -> None:
         """Create the adapter with an empty per-instance title cache.
@@ -442,8 +449,12 @@ class ColoradoAdapter(BaseStateAdapter):
             parts = citation.split("-")
             if len(parts) < 3 or parts[1] != article:
                 continue
-            # Skip range-repeal lines (e.g. '1-1-401 to 1-1-403') in listings
-            # when they are not the canonical single-section form.
+            # A range-repeal line (e.g. '1-1-401 to 1-1-403. (Repealed)') is a
+            # structural marker for a whole repealed range, not a single
+            # retrievable section: do not expose it as an ordinary section
+            # (there is no individual section to retrieve for it).
+            if " to " in m.group(0):
+                continue
             catchline = " ".join(stripped[m.end():].split())
             sections.append(
                 TocNode(
@@ -484,8 +495,11 @@ class ColoradoAdapter(BaseStateAdapter):
         """Return True if ``text`` is a complete catchline fragment (i.e. it
         ends with a sentence period or a ``(Repealed)`` / ``(Renumbered)``
         note), so no further lines should be appended to the catchline."""
-        return text.rstrip().endswith(".") or bool(
+        stripped = text.strip()
+        return stripped.endswith(".") or bool(
             re.search(r"\.\s*\([Rr]e(?:pealed|numbered)\)\s*$", text)
+        ) or bool(
+            re.match(r"\([Rr]e(?:pealed|numbered)\)\s*$", stripped)
         )
 
     # ------------------------------------------------------------
@@ -579,15 +593,23 @@ class ColoradoAdapter(BaseStateAdapter):
         # line) by the body, which begins with a subsection marker such as
         # '(1)', '(a)', a capital letter, or a digit. A repealed/renumbered
         # catchline ends with '.(Repealed)' / '.(Renumbered)' and is kept
-        # whole. The catchline may span multiple physical lines (wrapped).
+        # whole, and a bare '(Repealed)' / '(Renumbered)' marker on the line
+        # immediately after a wrapped catchline is folded into it. The
+        # catchline may span multiple physical lines (wrapped).
         after_citation = first[citation_match.end():].strip()
         catchline_parts = [after_citation]
         catchline_terminated = cls._catchline_ends(after_citation)
         for line in chunk[1:]:
-            if catchline_terminated:
-                break
             stripped = cls._strip_footer(line.strip())
             if not stripped:
+                break
+            # A bare '(Repealed)' / '(Renumbered)' marker on its own line
+            # continues the catchline even when the preceding line already
+            # ended with a period (a wrapped catchline, e.g. '42-1-223.').
+            if cls._REPEAL_NOTE_LINE.match(stripped):
+                catchline_parts.append(stripped)
+                break
+            if catchline_terminated:
                 break
             catchline_parts.append(stripped)
             catchline_terminated = cls._catchline_ends(stripped)
@@ -620,6 +642,8 @@ class ColoradoAdapter(BaseStateAdapter):
         for line in chunk[1:]:
             stripped = cls._strip_footer(line.strip())
             if not stripped:
+                continue
+            if cls._REPEAL_NOTE_LINE.match(stripped):
                 continue
             if cls._SOURCE.match(stripped) or cls._EDITORS_NOTE.match(stripped):
                 in_notes = True

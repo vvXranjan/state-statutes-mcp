@@ -210,6 +210,30 @@ class TestListSections:
         assert all(s.level == HierarchyLevel.SECTION for s in sections)
         assert all(s.ref.chapter == _chapter_ref("42", "1") for s in sections)
 
+    def test_range_repeal_not_exposed_as_section(self) -> None:
+        # co_title01_range.pdf contains the structural range-repeal line
+        # '1-1-401 to 1-1-403. (Repealed)' but no other article-1 sections.
+        # A range-repeal line is NOT an ordinary retrievable section, so it
+        # must not be exposed: listing article 1 yields no sections (rather
+        # than a bogus '1-1-401' entry), while article 1.5's real sections
+        # are still listed.
+        adapter = ColoradoAdapter()
+        with _serve({T1_URL: T1_RANGE_PDF}):
+            with pytest.raises(AdapterUnavailableError, match="no usable"):
+                adapter.list_sections(_chapter_ref("1", "1"))
+
+            sections_15 = adapter.list_sections(
+                ChapterRef(
+                    title=TitleRef(state_code="CO", identifier="1"),
+                    identifier="1.5",
+                )
+            )
+
+        ids_15 = [s.identifier for s in sections_15]
+        assert "1-1.5-101" in ids_15
+        assert "1-1.5-104" in ids_15
+        assert "1-1-401" not in ids_15
+
 
 class TestRetrieveSection:
     def setup_method(self) -> None:
@@ -290,6 +314,25 @@ class TestRetrieveSection:
         # Repealed sections keep '(Repealed)' in the heading; body is empty.
         assert section.citation.raw == "Colo. Rev. Stat. 1-1-112"
         assert section.heading == "Powers and duties of election commission. (Repealed)"
+        assert section.text == ""
+        assert section.status.value == "unknown"
+        assert section.amendment_notes is not None
+
+    def test_repealed_section_wrapped_catchline(self) -> None:
+        # 42-1-223's catchline wraps: the line ends with '... repeal.' and a
+        # bare '(Repealed)' marker is on the FOLLOWING line. The marker must
+        # be folded into the heading and the body must be empty.
+        ref = SectionRef(
+            chapter=_chapter_ref("42", "1"), identifier="42-1-223"
+        )
+        with _serve({T42_URL: T42_DECIMAL_PDF}):
+            section = self.adapter.retrieve_section(ref)
+
+        assert section.citation.raw == "Colo. Rev. Stat. 42-1-223"
+        assert section.heading == (
+            "Monitoring driving improvement schools - fund - rules - "
+            "repeal. (Repealed)"
+        )
         assert section.text == ""
         assert section.status.value == "unknown"
         assert section.amendment_notes is not None
@@ -393,6 +436,8 @@ class TestHelpers:
     def test_catchline_ends(self) -> None:
         assert ColoradoAdapter._catchline_ends("Short title.")
         assert ColoradoAdapter._catchline_ends("Powers. (Repealed)")
+        assert ColoradoAdapter._catchline_ends("(Repealed)")
+        assert ColoradoAdapter._catchline_ends("(Renumbered)")
         assert not ColoradoAdapter._catchline_ends("Articles 1 to 4 of this title")
 
     def test_num_key(self) -> None:
