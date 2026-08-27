@@ -1,0 +1,1 @@
+"""California adapter package."""

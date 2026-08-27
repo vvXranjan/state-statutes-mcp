@@ -1,0 +1,290 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+    <!--    &lt;div class="tabpanelinclude"&gt;-->
+
+    <div><html xmlns="http://www.w3.org/1999/xhtml"><head id="j_idt4">
+        <script type="text/javascript">
+            function myPopup() {
+
+                window.open("popupMessage.xhtml", "Information", "width=330, height=220, toolbar=no, location=no, directories=no, menubar=no, scrollbars=no, top=270, left=150");
+            }
+
+            function setCode() {
+                //         button = document.getElementById('expertsearchformid:executeID');
+                //              document.getElementById('expertsearchformid:parameterID1').value = document.getElementById('expertsearchformid:toctextcodeid').value;
+                //              document.getElementById('expertsearchformid:parameterID2').value ='2'; //just a value to bypass validation
+                //              button.click();
+                if (document.getElementById('expertsearchformid:toctextcodeid').value == 'CONS') {
+                    document.getElementById('expertsearchformid:articlelblid').style.display = 'inline';
+                    document.getElementById('expertsearchformid:articleid').style.display = 'inline';
+                } else {
+                    document.getElementById('expertsearchformid:articlelblid').style.display = 'none';
+                    document.getElementById('expertsearchformid:articleid').style.display = 'none';
+                    document.getElementById('expertsearchformid:articleid').value = "";
+                }
+            }
+
+        </script></head>
+    <div id="code_expert_search">
+
+
+        <div style="margin-top: .6em;">
+            <div id="codeSectionSearch" style=" text-align: right;">
+                <div id="code_section_srch">
+<form id="expertsearchformid" name="expertsearchformid" method="post" action="/faces/codesTOC.xhtml" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="expertsearchformid" value="expertsearchformid" />
+<label for="expertsearchformid:toctextcodeid" style="margin-right: .4em; " class="staticBoldText">Code:</label><select id="expertsearchformid:toctextcodeid" name="expertsearchformid:toctextcodeid" size="1" style="margin-right: 1em; background-color: #fff ; color:#0D0D0D; " onchange="setCode();">	<option value="Select">Select Code</option>
+	<option value="CONS">CONS</option>
+	<option value="BPC">BPC</option>
+	<option value="CIV">CIV</option>
+	<option value="CCP">CCP</option>
+	<option value="COM">COM</option>
+	<option value="CORP">CORP</option>
+	<option value="EDC">EDC</option>
+	<option value="ELEC">ELEC</option>
+	<option value="EVID">EVID</option>
+	<option value="FAM">FAM</option>
+	<option value="FIN">FIN</option>
+	<option value="FGC">FGC</option>
+	<option value="FAC">FAC</option>
+	<option value="GOV">GOV</option>
+	<option value="HNC">HNC</option>
+	<option value="HSC">HSC</option>
+	<option value="INS">INS</option>
+	<option value="LAB">LAB</option>
+	<option value="MVC">MVC</option>
+	<option value="PEN">PEN</option>
+	<option value="PROB">PROB</option>
+	<option value="PCC">PCC</option>
+	<option value="PRC">PRC</option>
+	<option value="PUC">PUC</option>
+	<option value="RTC">RTC</option>
+	<option value="SHC">SHC</option>
+	<option value="UIC">UIC</option>
+	<option value="VEH">VEH</option>
+	<option value="WAT">WAT</option>
+	<option value="WIC">WIC</option>
+</select><label id="expertsearchformid:articlelblid" for="expertsearchformid:articleid" style="margin-right: .4em; margin-left: .4em; display: none;" class="staticBoldText">Article:</label><input id="expertsearchformid:articleid" type="text" name="expertsearchformid:articleid" size="10" style="display: none; margin-right: 1em;" placeholder="I or II or XI" /><label for="expertsearchformid:toctextsectionid" style="margin-right: .4em;" class="staticBoldText">Section:</label><input id="expertsearchformid:toctextsectionid" type="text" name="expertsearchformid:toctextsectionid" onkeypress="if (event.keyCode == 13) {                                                  document.getElementById('expertsearchformid:expertsearchbtnid').click();                                                  return false;                                              }                                              ;                                              return true;" size="10" style="margin-right: 1em;" placeholder="1 or 2 or 1001" /><input id="expertsearchformid:expertsearchbtnid" type="submit" name="expertsearchformid:expertsearchbtnid" value="Search" style="margin-right: 1em;" class="buttons_sub" />
+                        <img onclick="myPopup();" alt="information" tabindex="0" src="/resources/images/info_popup.gif" style="margin-right: 2em; cursor: pointer;" onkeypress="if (event.keyCode == 13) {                                          myPopup();                                          return false;                                      }                                      ;                                      return true;" /><input type="hidden" name="javax.faces.ViewState" id="j_id1:javax.faces.ViewState:0" value="STUBBED" autocomplete="off" />
+</form>
+                </div>
+                <div id="code_mobile_text_srch" style="text-align: center;">
+<form id="codeSearchForm" name="codeSearchForm" method="post" action="/faces/codesTOC.xhtml" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="codeSearchForm" value="codeSearchForm" />
+<label for="codeSearchForm:home_search_code_select" class="staticBoldText">Code:</label><select id="codeSearchForm:home_search_code_select" name="codeSearchForm:home_search_code_select" size="1" style="margin-right: 1em; background-color: #fff ; color:#0D0D0D;" onchange="setCode();">	<option value="Select">Select Code</option>
+	<option value="All">All</option>
+	<option value="BPC">BPC</option>
+	<option value="CIV">CIV</option>
+	<option value="CCP">CCP</option>
+	<option value="COM">COM</option>
+	<option value="CORP">CORP</option>
+	<option value="EDC">EDC</option>
+	<option value="ELEC">ELEC</option>
+	<option value="EVID">EVID</option>
+	<option value="FAM">FAM</option>
+	<option value="FIN">FIN</option>
+	<option value="FGC">FGC</option>
+	<option value="FAC">FAC</option>
+	<option value="GOV">GOV</option>
+	<option value="HNC">HNC</option>
+	<option value="HSC">HSC</option>
+	<option value="INS">INS</option>
+	<option value="LAB">LAB</option>
+	<option value="MVC">MVC</option>
+	<option value="PEN">PEN</option>
+	<option value="PROB">PROB</option>
+	<option value="PCC">PCC</option>
+	<option value="PRC">PRC</option>
+	<option value="PUC">PUC</option>
+	<option value="RTC">RTC</option>
+	<option value="SHC">SHC</option>
+	<option value="UIC">UIC</option>
+	<option value="VEH">VEH</option>
+	<option value="WAT">WAT</option>
+	<option value="WIC">WIC</option>
+</select><label for="codeSearchForm:home_search_code_num" class="staticBoldText">Section: </label><input id="codeSearchForm:home_search_code_num" type="text" name="codeSearchForm:home_search_code_num" alt="Bill Number input" size="15" /><br /><label for="expertsearchformid:toctextsectionid" style="margin-right: .4em;" class="staticBoldText">Keyword(s):</label><input id="codeSearchForm:and_one" type="text" name="codeSearchForm:and_one" maxlength="60" /><input id="codeSearchForm:execute_search" type="submit" name="codeSearchForm:execute_search" value="Search" class="buttons_sub" />
+                        <br /><span id="codeSearchForm:codeComment"></span><input type="hidden" name="javax.faces.ViewState" id="j_id1:javax.faces.ViewState:1" value="STUBBED" autocomplete="off" />
+</form>
+                </div>
+            </div>
+            <div style="margin-left: 1em;">
+            </div>
+        </div>
+
+
+    </div>
+        <script>setCode();</script>
+    
+
+    <div style="clear:both;"></div>
+
+
+</html>
+    </div>
+
+    <div class="tabpanelinclude" style="margin-top: .7em;"><html xmlns="http://www.w3.org/1999/xhtml">
+<form id="j_idt32" name="j_idt32" method="post" action="/faces/codesTOC.xhtml" enctype="application/x-www-form-urlencoded" style="margin-bottom: 0">
+<input type="hidden" name="j_idt32" value="j_idt32" />
+
+    <div id="tab_panel">
+      <span class="tab_simple_start tab_selected"><script type="text/javascript" src="/faces/javax.faces.resource/jsf.js?ln=javax.faces"></script><a id="j_idt32:codesearchtab" href="#" onclick="mojarra.jsfcljs(document.getElementById('j_idt32'),{'j_idt32:codesearchtab':'j_idt32:codesearchtab'},'');return false" class="tab_link"><span class="float_left">Code Search</span></a>
+      </span>
+      <span class="tab_simple_start tab_not_selected"><a id="j_idt32:textsearchtab" href="#" onclick="mojarra.jsfcljs(document.getElementById('j_idt32'),{'j_idt32:textsearchtab':'j_idt32:textsearchtab'},'');return false" class="tab_link"><span class="float_left">Text Search</span></a>
+      </span>
+    </div><input type="hidden" name="javax.faces.ViewState" id="j_id1:javax.faces.ViewState:2" value="STUBBED" autocomplete="off" />
+</form>
+</html>
+    </div>
+
+
+    <div style="clear:both;">
+    </div>
+    <!--    &lt;/div&gt;-->
+
+
+    <!--&lt;h:form id="codetocfrm"&gt;-->
+    <div class="tab_content">
+<form id="codetocfrm2" name="codetocfrm2" method="post" action="/faces/codesTOC.xhtml" enctype="application/x-www-form-urlencoded">
+<input type="hidden" name="codetocfrm2" value="codetocfrm2" />
+
+            <div id="codestocheader">
+
+                <div>
+                        <div class="codes_const"><a href="/faces/codesTOCSelected.xhtml?tocCode=CONS&amp;tocTitle=+California+Constitution+-+CONS">  <!--value="{code_BackinBean.con}"--> California Constitution - CONS
+                                <!--&lt;h:outputText value="{code_BackinBean.codeBean.code}" /&gt;-->
+                                <!--&lt;f:param name="code" value="{code_BackinBean.codeBean.code}"&gt;&lt;/f:param&gt;-->
+                                 <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@78ba391e" /&gt;--></a>
+                        </div>
+
+
+                </div>
+
+                <div class="displaycodeleftmargin">
+                    <div class="codesIndexTblLeftdiv">
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=BPC&amp;tocTitle=+Business+and+Professions+Code+-+BPC"> <!--value="{code_BackinBean.fcol}"--> Business and Professions Code - BPC
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@aa0ba20" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=CIV&amp;tocTitle=+Civil+Code+-+CIV"> <!--value="{code_BackinBean.fcol}"--> Civil Code - CIV
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@5caa7690" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=CCP&amp;tocTitle=+Code+of+Civil+Procedure+-+CCP"> <!--value="{code_BackinBean.fcol}"--> Code of Civil Procedure - CCP
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@612a03c" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=COM&amp;tocTitle=+Commercial+Code+-+COM"> <!--value="{code_BackinBean.fcol}"--> Commercial Code - COM
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@2fc90b29" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=CORP&amp;tocTitle=+Corporations+Code+-+CORP"> <!--value="{code_BackinBean.fcol}"--> Corporations Code - CORP
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@2037c54a" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=EDC&amp;tocTitle=+Education+Code+-+EDC"> <!--value="{code_BackinBean.fcol}"--> Education Code - EDC
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@2fa6392a" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=ELEC&amp;tocTitle=+Elections+Code+-+ELEC"> <!--value="{code_BackinBean.fcol}"--> Elections Code - ELEC
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@3ca66fa2" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=EVID&amp;tocTitle=+Evidence+Code+-+EVID"> <!--value="{code_BackinBean.fcol}"--> Evidence Code - EVID
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@5b51bb5c" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=FAM&amp;tocTitle=+Family+Code+-+FAM"> <!--value="{code_BackinBean.fcol}"--> Family Code - FAM
+
+<!--&lt;f:attribute name="codeBean" value="beans.CodeBean@455238e9" /&gt;--></a>
+                            </div>
+
+                    </div>
+                    <div class="codesIndexTblMiddiv">
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=FIN&amp;tocTitle=+Financial+Code+-+FIN"> <!--value="{code_BackinBean.scol}"--> Financial Code - FIN
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@5b233600" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=FGC&amp;tocTitle=+Fish+and+Game+Code+-+FGC"> <!--value="{code_BackinBean.scol}"--> Fish and Game Code - FGC
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@54f799b9" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=FAC&amp;tocTitle=+Food+and+Agricultural+Code+-+FAC"> <!--value="{code_BackinBean.scol}"--> Food and Agricultural Code - FAC
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@2aa4320" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=GOV&amp;tocTitle=+Government+Code+-+GOV"> <!--value="{code_BackinBean.scol}"--> Government Code - GOV
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@56ebb6ec" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=HNC&amp;tocTitle=+Harbors+and+Navigation+Code+-+HNC"> <!--value="{code_BackinBean.scol}"--> Harbors and Navigation Code - HNC
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@143a1907" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=HSC&amp;tocTitle=+Health+and+Safety+Code+-+HSC"> <!--value="{code_BackinBean.scol}"--> Health and Safety Code - HSC
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@7ce87068" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=INS&amp;tocTitle=+Insurance+Code+-+INS"> <!--value="{code_BackinBean.scol}"--> Insurance Code - INS
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@2c8b9f96" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=LAB&amp;tocTitle=+Labor+Code+-+LAB"> <!--value="{code_BackinBean.scol}"--> Labor Code - LAB
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@27dc103d" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=MVC&amp;tocTitle=+Military+and+Veterans+Code+-+MVC"> <!--value="{code_BackinBean.scol}"--> Military and Veterans Code - MVC
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@63eac7e0" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=PEN&amp;tocTitle=+Penal+Code+-+PEN"> <!--value="{code_BackinBean.scol}"--> Penal Code - PEN
+                                     <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@5c3e80c5" /&gt;--></a>
+                            </div>
+                    </div>
+
+                    <div class="codesIndexTblRightdiv">
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=PROB&amp;tocTitle=+Probate+Code+-+PROB"> <!--value="true"--> Probate Code - PROB
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@2c39d3fb" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=PCC&amp;tocTitle=+Public+Contract+Code+-+PCC"> <!--value="true"--> Public Contract Code - PCC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@6ba373b9" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=PRC&amp;tocTitle=+Public+Resources+Code+-+PRC"> <!--value="true"--> Public Resources Code - PRC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@5ec37cea" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=PUC&amp;tocTitle=+Public+Utilities+Code+-+PUC"> <!--value="true"--> Public Utilities Code - PUC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@7653e75f" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=RTC&amp;tocTitle=+Revenue+and+Taxation+Code+-+RTC"> <!--value="true"--> Revenue and Taxation Code - RTC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@14175465" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=SHC&amp;tocTitle=+Streets+and+Highways+Code+-+SHC"> <!--value="true"--> Streets and Highways Code - SHC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@64d9d3e5" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=UIC&amp;tocTitle=+Unemployment+Insurance+Code+-+UIC"> <!--value="true"--> Unemployment Insurance Code - UIC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@21b8c7b8" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=VEH&amp;tocTitle=+Vehicle+Code+-+VEH"> <!--value="true"--> Vehicle Code - VEH
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@48b8a5cf" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=WAT&amp;tocTitle=+Water+Code+-+WAT"> <!--value="true"--> Water Code - WAT
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@66a274c1" /&gt;--></a>
+                            </div>
+                            <div style="margin-bottom: 8px;"><a href="/faces/codesTOCSelected.xhtml?tocCode=WIC&amp;tocTitle=+Welfare+and+Institutions+Code+-+WIC"> <!--value="true"--> Welfare and Institutions Code - WIC
+
+ <!--&lt;f:attribute name="codeBean" value="beans.CodeBean@4ccec50b" /&gt;--></a>
+                            </div>
+
+                    </div>
+                    <div style="clear:both;">
+                    </div>
+
+                </div>
+            </div><input type="hidden" name="javax.faces.ViewState" id="j_id1:javax.faces.ViewState:3" value="STUBBED" autocomplete="off" />
+</form>
+    </div>
+
+
+
+</html>

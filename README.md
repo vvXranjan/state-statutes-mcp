@@ -5,29 +5,29 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**37 / 50 states implemented** on the `feature/framework` branch.
+**38 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
 | AL | Alabama | MN | Minnesota |
 | AZ | Arizona | MO | Missouri |
-| CO | Colorado | MT | Montana |
-| CT | Connecticut | NC | North Carolina |
-| DE | Delaware | ND | North Dakota |
-| FL | Florida | NE | Nebraska |
-| HI | Hawaii | NH | New Hampshire |
-| IA | Iowa | NM | New Mexico |
-| ID | Idaho | NV | Nevada |
-| IL | Illinois | OH | Ohio |
-| KS | Kansas | OK | Oklahoma |
-| KY | Kentucky | OR | Oregon |
-| MA | Massachusetts | RI | Rhode Island |
-| MD | Maryland | SD | South Dakota |
-| ME | Maine | TX | Texas |
-| SC | South Carolina | VA | Virginia |
-| VT | Vermont | WA | Washington |
-| WI | Wisconsin | WV | West Virginia |
-| WY | Wyoming | | |
+| CA | California | MT | Montana |
+| CO | Colorado | NC | North Carolina |
+| CT | Connecticut | ND | North Dakota |
+| DE | Delaware | NE | Nebraska |
+| FL | Florida | NH | New Hampshire |
+| HI | Hawaii | NM | New Mexico |
+| IA | Iowa | NV | Nevada |
+| ID | Idaho | OH | Ohio |
+| IL | Illinois | OK | Oklahoma |
+| KS | Kansas | OR | Oregon |
+| KY | Kentucky | RI | Rhode Island |
+| MA | Massachusetts | SD | South Dakota |
+| MD | Maryland | TX | Texas |
+| ME | Maine | VA | Virginia |
+| SC | South Carolina | WA | Washington |
+| VT | Vermont | WI | Wisconsin |
+| WV | West Virginia | WY | Wyoming |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -96,16 +96,18 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- **13 states remain**: AK, AR, CA, GA, IN, LA, MI, MS, NJ, NY, PA, TN, UT.
+- **12 states remain**: AK, AR, GA, IN, LA, MI, MS, NJ, NY, PA, TN, UT.
 - **Implemented adapter families**: Kentucky, Iowa, New Mexico, Oklahoma,
   Wyoming, and Colorado are the PDF-family adapters (shared binary-fetch +
   PDF-extraction infrastructure); Alabama is the framework's first
-  GraphQL/JSON-POST adapter (the official ALISON Code API).
+  GraphQL/JSON-POST adapter (the official ALISON Code API); California is
+  the framework's first fully server-rendered-HTML adapter (leginfo
+  per-section pages, no JS or bulk archive).
 - **Closest to READY**: Alaska (deterministic per-section URL pattern;
   awaiting live access).
 - **Blocked from this environment**: Arkansas, Utah, and New York
-  (TCP/TLS unreachable or API-key gated); California, Pennsylvania,
-  Indiana, Louisiana, and Tennessee (robots-blocked, JS-only, or
-  LexisNexis-hosted); Mississippi and New Jersey (Lexis/Folio walls);
-  Michigan (stopped).
+  (TCP/TLS unreachable or API-key gated); Pennsylvania, Indiana,
+  Louisiana, and Tennessee (robots-blocked, JS-only, or LexisNexis-
+  hosted); Mississippi and New Jersey (Lexis/Folio walls); Michigan
+  (stopped).
 - See `docs/research/` for planning notes.

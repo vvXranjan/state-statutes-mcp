@@ -16,11 +16,12 @@ Research performed Aug 15, 2026. Findings labeled:
 written (WA, TX, IL, VA, DE, FL, SD, ME, MO, VT, WV, MN, AZ, KS, ND, MD,
 SC, NE, MT, HI, MA, OH, RI, WI, ID, NV, NH, CT, OR, NC, KY, IA, NM, OK),
 plus Alabama (the 35th, a GraphQL/JSON-POST family-L adapter), Wyoming
-(the 36th, a per-title-PDF family-I adapter), and Colorado (the 37th, a
-per-title-PDF family-I adapter using archived official fixtures), all added
+(the 36th, a per-title-PDF family-I adapter), Colorado (the 37th, a
+per-title-PDF family-I adapter using archived official fixtures), and
+California (the 38th, a server-rendered-HTML family-M adapter), all added
 after the matrix's research was written. This matrix now classifies the
-remaining 13 states. Each row records the adapter family the state would
-map to (A–L), its reachability, and its batch recommendation.
+remaining 12 states. Each row records the adapter family the state would
+map to (A–M), its reachability, and its batch recommendation.
 
 Family legend (from research):
 
@@ -38,6 +39,9 @@ Family legend (from research):
 - **K** — infeasible / framework-mismatched (hierarchy or access).
 - **L** — GraphQL/JSON POST API returning structured records with embedded
   HTML (Alabama-style).
+- **M** — server-rendered HTML over ordinary HTTP GET with a deep
+  (4+-level) hierarchy folded into the three-level ref model and direct
+  per-section pages (California-style).
 
 ---
 
@@ -82,10 +86,11 @@ Family legend (from research):
 | Alabama | AL | `alabama` | L (GraphQL/JSON POST, embedded HTML) | VERIFIED live |
 | Wyoming | WY | `wyoming` | I (per-title PDF, `title{NN:02d}.pdf`) | VERIFIED live |
 | Colorado | CO | `colorado` | I (per-title PDF, archived official fixtures) | VERIFIED fixtures |
+| California | CA | `california` | M (server-rendered HTML per-section, folded 4-level hierarchy) | VERIFIED live |
 
 ---
 
-## Remaining 13 States
+## Remaining 12 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented except Michigan (still remaining, in Group
@@ -152,7 +157,6 @@ PDF-family states remain.
 | **Tennessee** | Lexis via `tncourts.gov` | Lexis auth wall | G | HIGH |
 | **Mississippi** | Lexis-published via `sos.ms.gov` | Lexis auth wall | G | HIGH |
 | **Indiana** | `iga.in.gov` | React SPA (empty shell); `api.iga.in.gov` 403 "Invalid API key" | J (key) | HIGH |
-| **California** | `leginfo.legislature.ca.gov/codes_displayText.xhtml` | JSF form postback; section text only via Ajax partial render | F | HIGH |
 | **New York** | `legislation.nysenate.gov/api/3/` | 403/000; documented REST API requires free API key | D (key) | MEDIUM |
 | **Pennsylvania** | `palegis.us/statutes/consolidated/view-statute` | 000/302; legacy `consCheck.cfm` form-based (Wayback has no content captures) | F/J | HIGH |
 

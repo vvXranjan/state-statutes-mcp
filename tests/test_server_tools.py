@@ -33,6 +33,7 @@ from _mock_network import (
 
 from state_statutes_mcp.adapters.alabama.adapter import AlabamaAdapter
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
+from state_statutes_mcp.adapters.california.adapter import CaliforniaAdapter
 from state_statutes_mcp.adapters.colorado.adapter import ColoradoAdapter
 from state_statutes_mcp.adapters.connecticut.adapter import ConnecticutAdapter
 from state_statutes_mcp.adapters.delaware.adapter import DelawareAdapter
@@ -216,6 +217,7 @@ def _registry() -> AdapterRegistry:
     registry.register(DelawareAdapter())
     registry.register(FloridaAdapter())
     registry.register(ArizonaAdapter())
+    registry.register(CaliforniaAdapter())
     registry.register(ColoradoAdapter())
     registry.register(ConnecticutAdapter())
     registry.register(HawaiiAdapter())
@@ -255,6 +257,7 @@ class TestListStates:
         assert result == [
             {"state_code": "AL", "state_name": "Alabama"},
             {"state_code": "AZ", "state_name": "Arizona"},
+            {"state_code": "CA", "state_name": "California"},
             {"state_code": "CO", "state_name": "Colorado"},
             {"state_code": "CT", "state_name": "Connecticut"},
             {"state_code": "DE", "state_name": "Delaware"},
@@ -1590,3 +1593,49 @@ class TestGetSectionMontana:
             "part_0010/section_0030/0010-0110-0010-0030.html"
         )
         assert result["retrieved_at"] is not None
+
+
+class TestGetSectionCalifornia:
+    def test_returns_normalized_california_section(self) -> None:
+        # The real fixture: a verbatim live capture of the official
+        # leginfo.legislature.ca.gov section page (fetched Aug 27 2026; the
+        # JSF ViewState value is stubbed -- the statute HTML is verbatim).
+        # California section retrieval is a single server-rendered GET.
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml"
+            "?lawCode=BPC&sectionNum=5000": (
+                fixtures / "ca_section_bpc_5000.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "CA", "BPC", "3//1/1", "5000")
+
+        assert result["state"] == "CA"
+        assert result["section"] == "5000"
+        assert result["citation"] == "Cal. BPC § 5000"
+        assert result["heading"] is None
+        assert result["text"].startswith(
+            "(a) There is in the Department of Consumer Affairs"
+        )
+        assert result["status"] == "unknown"
+        assert "Amended by Stats. 2024" in result["amendment_notes"]
+        assert result["source_url"] == (
+            "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml"
+            "?lawCode=BPC&sectionNum=5000"
+        )
+        assert result["retrieved_at"] is not None
+
+    def test_invalid_section_raises(self) -> None:
+        from state_statutes_mcp.core.exceptions import RefNotFoundError
+
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml"
+            "?lawCode=BPC&sectionNum=999999": (
+                fixtures / "ca_section_invalid.html"
+            ).read_text(encoding="utf-8"),
+        }
+        with mock_urlopen_serving(served):
+            with pytest.raises(RefNotFoundError):
+                get_section(_registry(), "CA", "BPC", "3//1/1", "999999")
