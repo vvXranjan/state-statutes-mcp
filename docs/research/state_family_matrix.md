@@ -22,8 +22,10 @@ California (the 38th, a server-rendered-HTML family-M adapter), Michigan
 (the 39th, an archived-official-fixture HTML adapter with a synthetic
 title, family M), and Alaska (the 40th, an archived-official-fixture
 ISO-8859-1 adapter with citation-driven TOC discovery, family M), all
-added after the matrix's research was written. This matrix now classifies
-the remaining 10 states. Each row records the adapter family the state
+added after the matrix's research was written, and Pennsylvania (the 41st,
+an archived-official-fixture family-M adapter on the legacy
+consolidated-statutes host, legis.state.pa.us). This matrix now classifies
+the remaining 9 states. Each row records the adapter family the state
 would map to (A–M), its reachability, and its batch recommendation.
 
 Family legend (from research):
@@ -48,7 +50,7 @@ Family legend (from research):
 
 ---
 
-## Implemented (40)
+## Implemented (41)
 
 | State | Code | Adapter | Family | Status |
 |-------|------|---------|--------|--------|
@@ -92,10 +94,11 @@ Family legend (from research):
 | California | CA | `california` | M (server-rendered HTML per-section, folded 4-level hierarchy) | VERIFIED live |
 | Michigan | MI | `michigan` | M (archived-fixture HTML, synthetic title, Act/Division walk) | VERIFIED fixtures |
 | Alaska | AK | `alaska` | M (archived-fixture HTML, citation-driven TOC discovery, ISO-8859-1) | VERIFIED fixtures |
+| Pennsylvania | PA | `pennsylvania` | M (archived-fixture HTML, deterministic per-section URL, probing discovery) | VERIFIED fixtures |
 
 ---
 
-## Remaining 10 States
+## Remaining 9 States
 
 Groups 1-3 below originally described candidate families. All states in
 Groups 1-3 are now implemented (including Michigan); see the Implemented
@@ -161,7 +164,6 @@ PDF-family states remain.
 | **Mississippi** | Lexis-published via `sos.ms.gov` | Lexis auth wall | G | HIGH |
 | **Indiana** | `iga.in.gov` | React SPA (empty shell); `api.iga.in.gov` 403 "Invalid API key" | J (key) | HIGH |
 | **New York** | `legislation.nysenate.gov/api/3/` | 403/000; documented REST API requires free API key | D (key) | MEDIUM |
-| **Pennsylvania** | `palegis.us/statutes/consolidated/view-statute` | 000/302; legacy `consCheck.cfm` form-based (Wayback has no content captures) | F/J | HIGH |
 
 ---
 

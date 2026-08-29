@@ -94,6 +94,7 @@ class TestServerToolsExposed:
             "OH",
             "OK",
             "OR",
+            "PA",
             "RI",
             "SC",
             "SD",

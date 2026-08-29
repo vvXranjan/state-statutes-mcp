@@ -61,6 +61,7 @@ from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
 from state_statutes_mcp.adapters.ohio.adapter import OhioAdapter
 from state_statutes_mcp.adapters.oklahoma.adapter import OklahomaAdapter
 from state_statutes_mcp.adapters.oregon.adapter import OregonAdapter
+from state_statutes_mcp.adapters.pennsylvania.adapter import PennsylvaniaAdapter
 from state_statutes_mcp.adapters.rhode_island.adapter import RhodeIslandAdapter
 from state_statutes_mcp.adapters.south_carolina.adapter import SouthCarolinaAdapter
 from state_statutes_mcp.adapters.south_dakota.adapter import SouthDakotaAdapter
@@ -244,6 +245,7 @@ def _registry() -> AdapterRegistry:
     registry.register(OhioAdapter())
     registry.register(OklahomaAdapter())
     registry.register(OregonAdapter())
+    registry.register(PennsylvaniaAdapter())
     registry.register(RhodeIslandAdapter())
     registry.register(SouthCarolinaAdapter())
     registry.register(SouthDakotaAdapter())
@@ -289,6 +291,7 @@ class TestListStates:
             {"state_code": "OH", "state_name": "Ohio"},
             {"state_code": "OK", "state_name": "Oklahoma"},
             {"state_code": "OR", "state_name": "Oregon"},
+            {"state_code": "PA", "state_name": "Pennsylvania"},
             {"state_code": "RI", "state_name": "Rhode Island"},
             {"state_code": "SC", "state_name": "South Carolina"},
             {"state_code": "SD", "state_name": "South Dakota"},
@@ -1755,3 +1758,78 @@ class TestGetSectionAlaska:
         ):
             with pytest.raises(RefNotFoundError):
                 get_section(_registry(), "AK", "99", "99.99", "99.99.999")
+
+
+class TestGetSectionPennsylvania:
+    def test_returns_normalized_pennsylvania_section(self) -> None:
+        # The real fixture: a verbatim archived official capture of the
+        # legis.state.pa.us consolidated-statute section page (retrieved
+        # via the Wayback Machine, Aug 2026; the live host is TCP-blocked
+        # from this environment).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.027.007.000..HTM": (
+                fixtures / "pa_section_2707.html"
+            ).read_text(),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "PA", "18", "27", "2707")
+
+        assert result["state"] == "PA"
+        assert result["section"] == "2707"
+        assert result["citation"] == "18 Pa.C.S. § 2707"
+        assert result["heading"] == (
+            "Propulsion of missiles into an occupied vehicle or onto a "
+            "roadway."
+        )
+        assert result["text"].startswith(
+            "(a) Occupied vehicles.-- Whoever intentionally throws"
+        )
+        assert result["status"] == "unknown"
+        assert result["source_url"] == (
+            "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.027.007.000..HTM"
+        )
+        assert result["retrieved_at"] is not None
+
+    def test_decimal_section(self) -> None:
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.011.002.001..HTM": (
+                fixtures / "pa_section_1102_1.html"
+            ).read_text(),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "PA", "18", "11", "1102.1")
+
+        assert result["state"] == "PA"
+        assert result["section"] == "1102.1"
+        assert result["citation"] == "18 Pa.C.S. § 1102.1"
+
+    def test_repealed_section(self) -> None:
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.043.021.000..HTM": (
+                fixtures / "pa_section_4321.html"
+            ).read_text(),
+        }
+        with mock_urlopen_serving(served):
+            result = get_section(_registry(), "PA", "18", "43", "4321")
+
+        assert result["status"] == "repealed"
+        assert result["heading"] is None
+        assert "1985 Repeal Note" in result["text"]
+
+    def test_invalid_section_raises(self) -> None:
+        from state_statutes_mcp.core.exceptions import RefNotFoundError
+
+        # A nonexistent section resolves to the official 'Page Not Found'
+        # page (archived evidence: 18 § 5003 -> /cfdocs/Errors/404.html).
+        fixtures = Path(__file__).parent / "fixtures"
+        served = {
+            "https://www.legis.state.pa.us/WU01/LI/LI/CT/HTM/18/00.050.003.000..HTM": (
+                fixtures / "pa_404.html"
+            ).read_text(),
+        }
+        with mock_urlopen_serving(served):
+            with pytest.raises(RefNotFoundError):
+                get_section(_registry(), "PA", "18", "50", "5003")

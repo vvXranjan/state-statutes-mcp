@@ -5,30 +5,31 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**40 / 50 states implemented** on the `feature/framework` branch.
+**41 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
-| AK | Alaska | MN | Minnesota |
-| AL | Alabama | MO | Missouri |
-| AZ | Arizona | MT | Montana |
-| CA | California | NC | North Carolina |
-| CO | Colorado | ND | North Dakota |
-| CT | Connecticut | NE | Nebraska |
-| DE | Delaware | NH | New Hampshire |
-| FL | Florida | NM | New Mexico |
-| HI | Hawaii | NV | Nevada |
-| IA | Iowa | OH | Ohio |
-| ID | Idaho | OK | Oklahoma |
-| IL | Illinois | OR | Oregon |
-| KS | Kansas | RI | Rhode Island |
-| KY | Kentucky | SD | South Dakota |
-| MA | Massachusetts | TX | Texas |
-| MD | Maryland | VA | Virginia |
+| AK | Alaska | NC | North Carolina |
+| AL | Alabama | ND | North Dakota |
+| AZ | Arizona | NE | Nebraska |
+| CA | California | NH | New Hampshire |
+| CO | Colorado | NM | New Mexico |
+| CT | Connecticut | NV | Nevada |
+| DE | Delaware | OH | Ohio |
+| FL | Florida | OK | Oklahoma |
+| HI | Hawaii | OR | Oregon |
+| IA | Iowa | PA | Pennsylvania |
+| ID | Idaho | RI | Rhode Island |
+| IL | Illinois | SC | South Carolina |
+| KS | Kansas | SD | South Dakota |
+| KY | Kentucky | TX | Texas |
+| MA | Massachusetts | VA | Virginia |
+| MD | Maryland | VT | Vermont |
 | ME | Maine | WA | Washington |
 | MI | Michigan | WI | Wisconsin |
-| SC | South Carolina | WV | West Virginia |
-| VT | Vermont | WY | Wyoming |
+| MN | Minnesota | WV | West Virginia |
+| MO | Missouri | WY | Wyoming |
+| MT | Montana | | |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -97,7 +98,7 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- **10 states remain**: AR, GA, IN, LA, MS, NJ, NY, PA, TN, UT.
+- **9 states remain**: AR, GA, IN, LA, MS, NJ, NY, TN, UT.
 - **Implemented adapter families**: Kentucky, Iowa, New Mexico, Oklahoma,
   Wyoming, and Colorado are the PDF-family adapters (shared binary-fetch +
   PDF-extraction infrastructure); Alabama is the framework's first
@@ -108,9 +109,11 @@ shared network mock in `tests/_mock_network.py` — the real
   (legislature.mi.gov, verified through Wayback captures); Alaska is the
   framework's first ISO-8859-1 archived-fixture adapter with citation-driven
   TOC discovery and section retrieval (akleg.gov, verified through Wayback
-  captures).
+  captures); Pennsylvania is an archived-official-fixture family-M adapter
+  on the legacy consolidated-statutes host (legis.state.pa.us, verified
+  through Wayback captures).
 - **Blocked from this environment**: Arkansas, Utah, and New York
-  (TCP/TLS unreachable or API-key gated); Pennsylvania, Indiana,
+  (TCP/TLS unreachable or API-key gated); Indiana,
   Louisiana, and Tennessee (robots-blocked, JS-only, or LexisNexis-
   hosted); Mississippi and New Jersey (Lexis/Folio walls).
 - See `docs/research/` for planning notes.
