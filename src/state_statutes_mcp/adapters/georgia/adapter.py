@@ -135,7 +135,7 @@ class GeorgiaAdapter(BaseStateAdapter):
             )
         # Default: try repository fixtures (supports tests without env)
         # Walk from this file to repo root: .../adapters/georgia/adapter.py -> .../tests/fixtures/georgia
-        default = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "georgia" / "ga_T50_slice.txt"
+        default = Path(__file__).resolve().parents[4] / "tests" / "fixtures" / "georgia" / "ga_T50_slice.txt"
         if default.is_file():
             return default
         raise AdapterUnavailableError(
