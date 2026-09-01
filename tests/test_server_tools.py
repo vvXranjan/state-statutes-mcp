@@ -55,6 +55,8 @@ from state_statutes_mcp.adapters.montana.adapter import MontanaAdapter
 from state_statutes_mcp.adapters.nebraska.adapter import NebraskaAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
+from state_statutes_mcp.adapters.new_jersey.adapter import NewJerseyAdapter
+from state_statutes_mcp.adapters.new_york.adapter import NewYorkAdapter
 from state_statutes_mcp.adapters.new_mexico.adapter import NewMexicoAdapter
 from state_statutes_mcp.adapters.north_carolina.adapter import NorthCarolinaAdapter
 from state_statutes_mcp.adapters.north_dakota.adapter import NorthDakotaAdapter
@@ -239,6 +241,8 @@ def _registry() -> AdapterRegistry:
     registry.register(NebraskaAdapter())
     registry.register(NevadaAdapter())
     registry.register(NewHampshireAdapter())
+    registry.register(NewJerseyAdapter())
+    registry.register(NewYorkAdapter())
     registry.register(NewMexicoAdapter())
     registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())
@@ -286,8 +290,10 @@ class TestListStates:
             {"state_code": "ND", "state_name": "North Dakota"},
             {"state_code": "NE", "state_name": "Nebraska"},
             {"state_code": "NH", "state_name": "New Hampshire"},
+            {"state_code": "NJ", "state_name": "New Jersey"},
             {"state_code": "NM", "state_name": "New Mexico"},
             {"state_code": "NV", "state_name": "Nevada"},
+            {"state_code": "NY", "state_name": "New York"},
             {"state_code": "OH", "state_name": "Ohio"},
             {"state_code": "OK", "state_name": "Oklahoma"},
             {"state_code": "OR", "state_name": "Oregon"},
