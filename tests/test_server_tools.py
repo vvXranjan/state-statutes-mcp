@@ -54,6 +54,7 @@ from state_statutes_mcp.adapters.missouri.adapter import MissouriAdapter
 from state_statutes_mcp.adapters.montana.adapter import MontanaAdapter
 from state_statutes_mcp.adapters.nebraska.adapter import NebraskaAdapter
 from state_statutes_mcp.adapters.nevada.adapter import NevadaAdapter
+from state_statutes_mcp.adapters.georgia.adapter import GeorgiaAdapter
 from state_statutes_mcp.adapters.new_hampshire.adapter import NewHampshireAdapter
 from state_statutes_mcp.adapters.new_jersey.adapter import NewJerseyAdapter
 from state_statutes_mcp.adapters.new_york.adapter import NewYorkAdapter
@@ -243,6 +244,7 @@ def _registry() -> AdapterRegistry:
     registry.register(NewHampshireAdapter())
     registry.register(NewJerseyAdapter())
     registry.register(NewYorkAdapter())
+    registry.register(GeorgiaAdapter())
     registry.register(NewMexicoAdapter())
     registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())
@@ -273,6 +275,7 @@ class TestListStates:
             {"state_code": "CT", "state_name": "Connecticut"},
             {"state_code": "DE", "state_name": "Delaware"},
             {"state_code": "FL", "state_name": "Florida"},
+            {"state_code": "GA", "state_name": "Georgia"},
             {"state_code": "HI", "state_name": "Hawaii"},
             {"state_code": "IA", "state_name": "Iowa"},
             {"state_code": "ID", "state_name": "Idaho"},

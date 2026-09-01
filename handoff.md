@@ -2,7 +2,7 @@
 
 **Prepared by: Vaibhav Vikas Ranjan**
 
-**Verified baseline:** `a934772` + NJ (#42) + NY (#43) = 43/50, `1456 passed / 1 skipped`, `git diff --check` clean (B82.1 `GREEN`)
+**Verified baseline:** `a87b4f3` + GA (#44, Archive.org OCGA) = 44/50, `1488 collected, 1487 passed, 1 skipped`, `git diff --check` clean (B94 GREEN)
 **Source of truth:** `src/state_statutes_mcp/`, `tests/`, `pyproject.toml`, registry, MCP tools — not historical reports
 
 ## Table of Contents
@@ -15,7 +15,7 @@
 6. Domain Models & Frontend Data Contract
 7. Exact Field Origin Trace
 8. Detailed Single-Clause Workflow
-9. 43-State Adapter Architecture
+9. 44-State Adapter Architecture
 10. Discovery Workflow
 11. Search Capabilities
 12. Error Contract
@@ -41,17 +41,17 @@
 
 ## 1. Executive Summary
 
-**CURRENT IMPLEMENTATION:** `state-statutes-mcp` is an MCP (Model Context Protocol) server that retrieves US state statutes from official state sources via per-state adapters. `43/50` states are implemented (NJ `#42` via bulk `STATUTES.TXT`, NY `#43` via `nysenate.gov` HTML-per-section). The backend exposes **5 MCP tools** over **stdio** (`mcp.server.mcpserver.MCPServer`), not a REST/HTTP API. All retrieval is deterministic (`citation → exact section`) with explicit `RefNotFoundError`/`RefMismatchError` handling, fixture-backed offline tests, and no live government fetch in `pytest`.
+**CURRENT IMPLEMENTATION:** `state-statutes-mcp` is an MCP (Model Context Protocol) server that retrieves US state statutes from official state sources via per-state adapters. `44/50` states are implemented (NJ `#42` via bulk `STATUTES.TXT`, NY `#43` via `nysenate.gov` HTML-per-section, GA `#44` via Archive.org OCGA bulk `gov.ga.ocga.2024`). The backend exposes **5 MCP tools** over **stdio** (`mcp.server.mcpserver.MCPServer`), not a REST/HTTP API. All retrieval is deterministic (`citation → exact section`) with explicit `RefNotFoundError`/`RefMismatchError` handling, fixture-backed offline tests, and no live government fetch in `pytest`.
 
 **RECOMMENDED:** A BFF/application backend that speaks MCP (via `mcp` client) and exposes a typed HTTP/JSON API to a React/Next.js frontend. **FUTURE:** LLM summarization, persistence, full-text search are not implemented.
 
 ## 2. Verified Current System
 
-- **Branch:** `feature/framework`, **HEAD:** `a934772` + uncommitted NJ+NY (verified via `git status --short`)
-- **Adapters:** 43 dirs under `src/state_statutes_mcp/adapters/` (`alaska` … `wyoming` includes `new_jersey`, `new_york`)
-- **Registry:** `src/state_statutes_mcp/server.py:build_registry()` registers 43 explicitly, `src/state_statutes_mcp/server_tools.py` is the pure tool layer
-- **Tests:** `1457 collected, 1456 passed, 1 skipped` (Illinois), `python -m compileall` silent
-- **States:** `AK AL AZ CA CO CT DE FL HI IA ID IL KS KY MA MD ME MI MN MO MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TX VA VT WA WI WV WY` (sorted, from `build_registry()`)
+- **Branch:** `feature/framework`, **HEAD:** `a87b4f3` (B94) + GA (#44) = 44/50 (verified via `git status --short`)
+- **Adapters:** 44 dirs under `src/state_statutes_mcp/adapters/` (`alaska` … `wyoming` includes `georgia`, `new_jersey`, `new_york`)
+- **Registry:** `src/state_statutes_mcp/server.py:build_registry()` registers 44 explicitly, `src/state_statutes_mcp/server_tools.py` is the pure tool layer
+- **Tests:** `1488 collected, 1487 passed, 1 skipped` (Illinois), `python -m compileall` silent
+- **States:** `AK AL AZ CA CO CT DE FL GA HI IA ID IL KS KY MA MD ME MI MN MO MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TX VA VT WA WI WV WY` (sorted, from `build_registry()`)
 
 ## 3. Complete Repository Map
 
@@ -78,7 +78,7 @@
 | `tests/test_new_york_adapter.py` (23 tests) | NY fixture-based offline | Test | P0 | P0 |
 | `tests/test_new_jersey_adapter.py` (21 tests) | NJ fixture-based | Test | P0 | P0 |
 | `tests/test_server.py`, `tests/test_server_tools.py` | Registry/server integration | Test | P1 | P1 |
-| `README.md` | 43/50, table, architecture, roadmap | Docs | P1 | P1 |
+| `README.md` | 44/50, table, architecture, roadmap | Docs | P1 | P1 |
 | `pyproject.toml` | `setuptools`, `pydantic>=2`, `mcp>=2.0`, `pypdf`, `pytest` `pythonpath=["src"]` | Config | P2 | P2 |
 | `docs/research/*.md` | Per-state verification notes | Docs | P2 | P2 |
 
@@ -190,7 +190,7 @@ sequenceDiagram
 
 Files touched: `src/state_statutes_mcp/models/refs.py:TitleRef/ChapterRef/SectionRef`, `src/state_statutes_mcp/adapters/new_york/adapter.py:build_url, retrieve_section, _parse_html, normalize`, `src/state_statutes_mcp/adapters/_fetch.py:fetch_url`, `src/state_statutes_mcp/models/statute_section.py`.
 
-## 9. 43-State Adapter Architecture
+## 9. 44-State Adapter Architecture
 
 | Code | State | Adapter | Source family | Retrieval | Frontend significance |
 |------|-------|---------|---------------|-----------|-----------------------|
@@ -223,6 +223,7 @@ Files touched: `src/state_statutes_mcp/models/refs.py:TitleRef/ChapterRef/Sectio
 | NM | New Mexico | new_mexico | PDF | PDF | - |
 | NV | Nevada | nevada | CHAPTER_LEVEL_HTML | HTML | - |
 | **NY** | **New York** | **new_york** | **HTML_PER_SECTION** | **Live `nysenate.gov` per-section HTML, fixture-backed offline** | `lawId/locationId` exact |
+| **GA** | **Georgia** | **georgia** | **BULK_TEXT** | **Archive.org `gov.ga.ocga.2024` OCGA bulk (2.6M djvu.txt, 3.5M pdf), public-domain certified, hyphenated `50-3-1` exact** | `50-3-1` hyphenated |
 | OH | Ohio | ohio | CHAPTER_LEVEL_HTML | HTML | - |
 | OK | Oklahoma | oklahoma | PDF | PDF | - |
 | OR | Oregon | oregon | CHAPTER_LEVEL_HTML | HTML | - |
@@ -359,10 +360,10 @@ graph TD
 - **Representative fixtures:** 7.9 KB slice with `1:1-1`, `2A:3-14`, `39:4-97/97a/98/98.1/99` — neighbor protection verified.
 - **Provenance:** `local-nj-statutes://` or `data_path` stored in `source_url`.
 
-## 17. B82.1 Verified Backend Baseline
+## 17. B94 Verified Backend Baseline (44/50)
 
-- `43/43` adapters instantiate, `__abstractmethods__ == frozenset()`, `build_url` deterministic.
-- `43/43` fixture-backed retrieval via `pytest` (each `TestGetSection` uses committed fixture + `mock_urlopen`).
+- `44/44` adapters instantiate, `__abstractmethods__ == frozenset()`, `build_url` deterministic.
+- `44/44` fixture-backed retrieval via `pytest` (each `TestGetSection` uses committed fixture + `mock_urlopen`).
 - Hardcore harness (`seed 20260831`): 6 valid refs, 2 round-trips, 20 invalid, 4 neighbor, 6 cross-state, 0 leakage.
 - `git diff --check` clean, `python -m compileall` silent.
 - **Actual current test counts:** `pytest -q` → `1456 passed, 1 skipped` (Illinois `test_illinois_adapter.py` with `@pytest.mark.skip` for live fixture), `pytest --collect-only -q` → `1457 collected`.
@@ -506,7 +507,7 @@ hooks/
 ## 27. Current Limitations
 
 **VERIFIED limitations** (not defects):
-- **Discovery minimal:** NY returns only 2 lawIds, NJ 4 titles — not exhaustive 134-law/58-title corpus (intentional, avoids fabrication).
+- **Discovery minimal:** NY returns only 2 lawIds, NJ 4 titles, GA returns 3 titles (35,49,50) and representative chapters (50/3) — not exhaustive OCGA corpus (intentional, avoids fabrication; GA verified representative, not exhaustive).
 - **Source-specific hierarchy:** NY `CHAPTER 57-A, ARTICLE 5` flattened to `ChapterRef("57-A")` (article in `h4` but not a separate `ChapterRef`); deeper NY `Title → Article` not exposed as separate level.
 - **No browser API:** MCP is stdio only; browser cannot call directly.
 - **No search:** Only exact `get_section` by known identifiers; no citation search, full-text, or autocomplete.
@@ -527,7 +528,7 @@ These are **current implementation boundaries**, not contract violations.
 - [ ] Rate-limit BFF if scraping risk
 
 ### Frontend team
-- [ ] `StateSelector` from `list_states` (43)
+- [ ] `StateSelector` from `list_states` (44)
 - [ ] `TitleList`/`ChapterList`/`SectionList` cascades with `useQuery`
 - [ ] `CitationInput` with exact `title/chapter/section` validation
 - [ ] `StatuteViewer` rendering `heading`/`text` (preserve `\n`), `amendment_notes`
@@ -543,13 +544,13 @@ These are **current implementation boundaries**, not contract violations.
 - [ ] Neighbor `STT 501` vs `502` → distinct `text`
 - [ ] Wrong-law `VTL/1110` → `RefMismatch` → `400`
 - [ ] `NJ 39:4-97` → fixture slice
-- [ ] All 43 `list_states` contains `NY`/`NJ`
+- [ ] All 44 `list_states` contains `GA`/`NY`/`NJ`
 - [ ] Malformed `""` → `400`
 
 ## 29. What the Frontend Developer Needs to Know
 
 ### What exists today?
-43 adapters, 5 MCP tools over stdio, fixture-backed deterministic retrieval, 1456 tests.
+44 adapters, 5 MCP tools over stdio, fixture-backed deterministic retrieval, 1487 tests.
 
 ### What can I call today?
 Via BFF wrapping MCP: `list_states`, `list_titles(state_code)`, `list_chapters(state_code,title)`, `list_sections(state_code,title,chapter)`, `get_section(state_code,title,chapter,section)` — no REST without BFF, no search.

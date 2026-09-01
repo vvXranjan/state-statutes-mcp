@@ -20,6 +20,7 @@ from mcp.server.mcpserver import MCPServer
 
 from state_statutes_mcp.adapters.alabama.adapter import AlabamaAdapter
 from state_statutes_mcp.adapters.alaska.adapter import AlaskaAdapter
+from state_statutes_mcp.adapters.georgia.adapter import GeorgiaAdapter
 from state_statutes_mcp.adapters.arizona.adapter import ArizonaAdapter
 from state_statutes_mcp.adapters.california.adapter import CaliforniaAdapter
 from state_statutes_mcp.adapters.colorado.adapter import ColoradoAdapter
@@ -108,6 +109,7 @@ def build_registry() -> AdapterRegistry:
     registry.register(NewHampshireAdapter())
     registry.register(NewJerseyAdapter())
     registry.register(NewYorkAdapter())
+    registry.register(GeorgiaAdapter())
     registry.register(NewMexicoAdapter())
     registry.register(NorthCarolinaAdapter())
     registry.register(NorthDakotaAdapter())

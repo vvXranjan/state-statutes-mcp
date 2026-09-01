@@ -72,6 +72,7 @@ class TestServerToolsExposed:
             "CT",
             "DE",
             "FL",
+            "GA",
             "HI",
             "IA",
             "ID",

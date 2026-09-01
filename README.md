@@ -5,7 +5,7 @@ from the official state sources via state-specific adapters.
 
 ## Status
 
-**43 / 50 states implemented** on the `feature/framework` branch.
+**44 / 50 states implemented** on the `feature/framework` branch.
 
 | Code | State | Code | State |
 |------|-------|------|-------|
@@ -17,20 +17,20 @@ from the official state sources via state-specific adapters.
 | CT | Connecticut | NM | New Mexico |
 | DE | Delaware | NV | Nevada |
 | FL | Florida | NY | New York |
-| HI | Hawaii | OH | Ohio |
-| IA | Iowa | OK | Oklahoma |
-| ID | Idaho | OR | Oregon |
-| IL | Illinois | PA | Pennsylvania |
-| KS | Kansas | RI | Rhode Island |
-| KY | Kentucky | SC | South Carolina |
-| MA | Massachusetts | SD | South Dakota |
-| MD | Maryland | TX | Texas |
-| ME | Maine | VA | Virginia |
-| MI | Michigan | VT | Vermont |
-| MN | Minnesota | WA | Washington |
-| MO | Missouri | WI | Wisconsin |
-| MT | Montana | WV | West Virginia |
-| WY | Wyoming | | |
+| GA | Georgia | OH | Ohio |
+| HI | Hawaii | OK | Oklahoma |
+| IA | Iowa | OR | Oregon |
+| ID | Idaho | PA | Pennsylvania |
+| IL | Illinois | RI | Rhode Island |
+| KS | Kansas | SC | South Carolina |
+| KY | Kentucky | SD | South Dakota |
+| MA | Massachusetts | TX | Texas |
+| MD | Maryland | VA | Virginia |
+| ME | Maine | VT | Vermont |
+| MI | Michigan | WA | Washington |
+| MN | Minnesota | WI | Wisconsin |
+| MO | Missouri | WV | West Virginia |
+| MT | Montana | WY | Wyoming |
 
 Each state is served by its own adapter under
 `src/state_statutes_mcp/adapters/{state}/adapter.py`, registered explicitly
@@ -99,7 +99,7 @@ shared network mock in `tests/_mock_network.py` — the real
 
 ## Roadmap
 
-- **7 states remain**: AR, GA, IN, LA, MS, TN, UT.
+- **6 states remain**: AR, IN, LA, MS, TN, UT.
 - **Implemented adapter families**: Kentucky, Iowa, New Mexico, Oklahoma,
   Wyoming, and Colorado are the PDF-family adapters (shared binary-fetch +
   PDF-extraction infrastructure); Alabama is the framework's first
@@ -116,7 +116,10 @@ shared network mock in `tests/_mock_network.py` — the real
   bulk-text (STATUTES.TXT) adapter from the official NJ Legislature
   STATUTES-TEXT.zip (local dataset, deterministic citation index); New York
   is the framework's first live HTML-per-section adapter from the official
-  NY Senate `nysenate.gov` (plain HTTPS, lawId + section exact, no API key).
+  NY Senate `nysenate.gov` (plain HTTPS, lawId + section exact, no API key);
+  Georgia is the framework's second bulk-text adapter from the official
+  OCGA via Archive.org `gov.ga.ocga.2024` (public-domain, certified
+  statutory portion, deterministic hyphenated citation index).
 - **Blocked from this environment**: Arkansas and Utah
   (TCP/TLS unreachable); Indiana,
   Louisiana, and Tennessee (robots-blocked, JS-only, or LexisNexis-
