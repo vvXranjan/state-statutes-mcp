@@ -243,12 +243,13 @@ Per-state adapters are intentional (official sources have no shared URL scheme).
 
 ```mermaid
 graph TD
-    REG[AdapterRegistry<br/>43 adapters]
+    REG[AdapterRegistry<br/>44 adapters]
     REG --> NJ[BULK_TEXT<br/>NJ STATUTES.TXT<br/>O(1) dict]
     REG --> NY[HTML_PER_SECTION<br/>NY nysenate.gov<br/>h2/h4/result-text]
+    REG --> GA[BULK_TEXT<br/>GA OCGA bulk<br/>hyphenated 50-3-1]
     REG --> JSON[JSON_API<br/>AL/KS/ND]
     REG --> PDF[PDF<br/>CO/IA/KY/NM/OK/WY]
-    REG --> HTML[CHAPTER/ONE_SECTION HTML<br/>remaining 33]
+    REG --> HTML[CHAPTER/ONE_SECTION HTML<br/>remaining 32]
 ```
 
 ## 10. Discovery Workflow
@@ -263,7 +264,7 @@ graph TD
     Sec --> G[get_section<br/>state_code, title, chapter, section]
 ```
 
-- `list_states` → `[{state_code, state_name}]` sorted (43, includes `NY`/`NJ`).
+- `list_states` → `[{state_code, state_name}]` sorted (44, includes `GA`/`NY`/`NJ`).
 - `list_titles(NY)` → `STT`, `VAT` (known lawIds; **not** full 134-law corpus — intentional minimal, not exhaustive).
 - `list_titles(NJ)` → `1`, `2A`, `39`, `58` (representative slice, not 58/68).
 - `list_chapters(STT)` → `57-A`; `VAT` → `71`.
@@ -366,7 +367,7 @@ graph TD
 - `44/44` fixture-backed retrieval via `pytest` (each `TestGetSection` uses committed fixture + `mock_urlopen`).
 - Hardcore harness (`seed 20260831`): 6 valid refs, 2 round-trips, 20 invalid, 4 neighbor, 6 cross-state, 0 leakage.
 - `git diff --check` clean, `python -m compileall` silent.
-- **Actual current test counts:** `pytest -q` → `1456 passed, 1 skipped` (Illinois `test_illinois_adapter.py` with `@pytest.mark.skip` for live fixture), `pytest --collect-only -q` → `1457 collected`.
+- **Actual current test counts:** `pytest -q` → `1487 passed, 1 skipped` (Illinois `test_illinois_adapter.py` with `@pytest.mark.skip` for live fixture), `pytest --collect-only -q` → `1488 collected`.
 
 ## 18. Security Boundaries
 
@@ -486,11 +487,11 @@ hooks/
 
 | Capability | Current status | Frontend readiness | Notes |
 |------------|----------------|--------------------|-------|
-| state discovery | **CURRENT IMPLEMENTATION** | **READY** | 43 via `list_states` |
-| title discovery | **CURRENT** | **READY** (minimal for NY/NJ) | NY 2 lawIds, NJ 4 titles |
-| chapter discovery | **CURRENT** | **READY** | NY `57-A`/`71` |
-| section discovery | **CURRENT** | **READY** | NY `501,502`/`1110,1111` |
-| section retrieval | **CURRENT** | **READY** | 43 via `get_section` |
+| state discovery | **CURRENT IMPLEMENTATION** | **READY** | 44 via `list_states` |
+| title discovery | **CURRENT** | **READY** (minimal for NY/NJ/GA) | NY 2 lawIds, NJ 4 titles, GA 3 titles |
+| chapter discovery | **CURRENT** | **READY** | NY `57-A`/`71`, GA `50/3` |
+| section discovery | **CURRENT** | **READY** | NY `501,502`/`1110,1111`, GA `50-3-1` |
+| section retrieval | **CURRENT** | **READY** | 44 via `get_section` |
 | error handling | **CURRENT** | **READY** | 6 exceptions mapped |
 | provenance | **CURRENT** | **READY** | `source_url`/`retrieved_at` |
 | MCP transport | **CURRENT** | **READY** (stdio) | No HTTP yet |
@@ -581,17 +582,19 @@ graph TB
     Browser[Browser<br/>React/Next.js]
     BFF[BFF<br/>Next.js API / FastAPI<br/>RECOMMENDED]
     MCP[state-statutes-mcp<br/>MCPServer stdio<br/>CURRENT]
-    REG[AdapterRegistry 43]
+    REG[AdapterRegistry 44]
     NJ[NJ BULK_TEXT]
     NY[NY HTML_PER_SECTION]
-    SRC[Official sources<br/>nysenate.gov / STATUTES.TXT]
+    GA[GA BULK_TEXT]
+    SRC[Official sources<br/>nysenate.gov / STATUTES.TXT / OCGA bulk]
 
     Browser -->|HTTP JSON| BFF
     BFF -->|mcp client<br/>call_tool| MCP
     MCP --> REG
-    REG --> NJ & NY & HTML & PDF & JSON
+    REG --> NJ & NY & GA & HTML & PDF & JSON
     NJ --> SRC
     NY --> SRC
+    GA --> SRC
 ```
 
 ```mermaid
@@ -617,4 +620,4 @@ graph TD
 ```
 
 ---
-*Verified against: `src/state_statutes_mcp/server.py:143-183`, `server_tools.py:64-111`, `adapters/base.py`, `models/refs.py`, `models/statute_section.py`, `adapters/new_york/adapter.py`, `adapters/new_jersey/adapter.py`, `tests/fixtures/new_york/*.html`, `tests/test_new_york_adapter.py` (23), `pytest 1456/1`.*
+*Verified against: `src/state_statutes_mcp/server.py:143-183`, `server_tools.py:64-111`, `adapters/base.py`, `models/refs.py`, `models/statute_section.py`, `adapters/new_york/adapter.py`, `adapters/new_jersey/adapter.py`, `adapters/georgia/adapter.py`, `tests/fixtures/new_york/*.html`, `tests/test_new_york_adapter.py` (23), `tests/test_georgia_adapter.py` (31), `pytest 1488 collected, 1487 passed, 1 skipped`.*
